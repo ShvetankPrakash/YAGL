@@ -5,7 +5,7 @@
 %token <string> VARR
 
 %left SEQ
-%left EQUALS
+%right EQUALS
 %left PLUS MINUS
 %left TIMES DIVIDE
 
