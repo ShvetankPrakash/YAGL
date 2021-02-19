@@ -4,11 +4,13 @@
 open Ast
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE COMMA PLUS MINUS TIMES DIVIDE ASSIGN
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL FLOAT VOID
+%token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH ARRAY EDGE
 %token <int> LITERAL
 %token <bool> BLIT
+%token <char> CHRLIT
+%token <string> STRLIT
 %token <string> ID FLIT
 %token EOF
 
@@ -53,10 +55,16 @@ formal_list:
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
 typ:
-    INT   { Int   }
-  | BOOL  { Bool  }
-  | FLOAT { Float }
-  | VOID  { Void  }
+    INT    { Int    }
+  | BOOL   { Bool   }
+  | FLOAT  { Float  }
+  | VOID   { Void   }
+  | CHAR   { () }
+  | STRING { () }
+  | NODE   { () }
+  | GRAPH  { () }
+  | EDGE   { () }
+  | ARRAY LBRAC typ RBRAC { () }
 
 vdecl_list:
     /* nothing */    { [] }
@@ -75,8 +83,8 @@ stmt:
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
-  | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
-                                            { For($3, $5, $7, $9)   }
+  | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
+                                            { ()   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
 
 expr_opt:
@@ -87,17 +95,16 @@ expr:
     LITERAL          { Literal($1)            }
   | FLIT	     { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
+  | CHRLIT           { ()                     }
+  | STRLIT           { ()                     }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
   | expr TIMES  expr { Binop($1, Mult,  $3)   }
   | expr DIVIDE expr { Binop($1, Div,   $3)   }
   | expr EQ     expr { Binop($1, Equal, $3)   }
-  | expr NEQ    expr { Binop($1, Neq,   $3)   }
   | expr LT     expr { Binop($1, Less,  $3)   }
-  | expr LEQ    expr { Binop($1, Leq,   $3)   }
   | expr GT     expr { Binop($1, Greater, $3) }
-  | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
