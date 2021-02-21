@@ -59,12 +59,12 @@ typ:
   | BOOL   { Bool   }
   | FLOAT  { Float  }
   | VOID   { Void   }
-  | CHAR   { () }
-  | STRING { () }
-  | NODE   { () }
-  | GRAPH  { () }
-  | EDGE   { () }
-  | ARRAY LBRAC typ RBRAC { () }
+  | CHAR   { Void   }
+  | STRING { Void   }
+  | NODE   { Void   }
+  | GRAPH  { Void   }
+  | EDGE   { Void   }
+  | ARRAY LBRAC typ RBRAC { Void }
 
 vdecl_list:
     /* nothing */    { [] }
@@ -84,19 +84,24 @@ stmt:
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
-                                            { ()   }
+                                            { For($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
 
 expr_opt:
     /* nothing */ { Noexpr }
   | expr          { $1 }
 
+edge:
+    ID ARROW LITERAL ID
+  | ID ARROW LITERAL EDGE 
+
 expr:
     LITERAL          { Literal($1)            }
   | FLIT	     { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
-  | CHRLIT           { ()                     }
-  | STRLIT           { ()                     }
+  | CHRLIT           { Noexpr                 }
+  | STRLIT           { Noexpr                 }
+  | GRAPH COLON edge { Noexpr                 }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }

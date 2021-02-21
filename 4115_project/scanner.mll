@@ -29,6 +29,8 @@ rule token = parse
 | "&&"     { AND }
 | "||"     { OR }
 | "!"      { NOT }
+| ":"      { COLON }
+| "->"     { ARROW }
 | "if"     { IF }
 | "else"   { ELSE }
 | "while"  { WHILE }
@@ -48,8 +50,8 @@ rule token = parse
 | digits as lxm { LITERAL(int_of_string lxm) }
 | digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
-| "'" escapeChars "'"                                 as lxm { CHRLIT(lxm) }
-| "'" ascii "'"                                       as lxm { CHRLIT(lxm) }
+| "'" escapeChars "'"                                 as lxm { CHRLIT(String.get lxm 0) } (* TODO: Fix taking in of two chars for escapeChars *)
+| "'" ascii "'"                                       as lxm { CHRLIT(String.get lxm 0) }
 | '"' (ascii* escapeChars*)+ '"'                      as lxm { STRLIT(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
