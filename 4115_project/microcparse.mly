@@ -4,9 +4,9 @@
 open Ast
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW COLON
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW COLON DOT QMARK
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
-%token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH ARRAY EDGE
+%token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
 %token <bool> BLIT
 %token <char> CHRLIT
@@ -22,11 +22,15 @@ open Ast
 %right ASSIGN
 %left OR
 %left AND
-%left EQ NEQ
+%left EQ NEQ COLON
 %left LT GT LEQ GEQ
+%left ARROW
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT
+%left QMARK
+%left LBRAC 
+%left DOT
 
 %%
 
@@ -64,14 +68,15 @@ typ:
   | NODE   { Void   }
   | GRAPH  { Void   }
   | EDGE   { Void   }
-  | ARRAY LBRAC typ RBRAC { Void }
+  | typ LBRAC expr RBRAC { Void }
 
 vdecl_list:
     /* nothing */    { [] }
   | vdecl_list vdecl { $2 :: $1 }
 
 vdecl:
-   typ ID SEMI { ($1, $2) }
+     typ ID SEMI { ($1, $2) }  /* What does this do? */
+   | typ ID ASSIGN expr SEMI { ($1, $2) }
 
 stmt_list:
     /* nothing */  { [] }
@@ -92,8 +97,8 @@ expr_opt:
   | expr          { $1 }
 
 edge:
-        ID ARROW LITERAL ID { () }
-  | ID ARROW LITERAL EDGE  { () }
+    ID ARROW LITERAL ID    { Noexpr }
+  | ID ARROW LITERAL edge  { Noexpr }
 
 expr:
     LITERAL          { Literal($1)            }
@@ -101,7 +106,6 @@ expr:
   | BLIT             { BoolLit($1)            }
   | CHRLIT           { Noexpr                 }
   | STRLIT           { Noexpr                 }
-  | GRAPH COLON edge { Noexpr                 }
   | ID               { Id($1)                 }
   | expr PLUS   expr { Binop($1, Add,   $3)   }
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
@@ -112,9 +116,13 @@ expr:
   | expr GT     expr { Binop($1, Greater, $3) }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
+  | expr QMARK  expr { Noexpr                 }
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
   | ID ASSIGN expr   { Assign($1, $3)         }
+  | ID COLON edge    { Noexpr                 } 
+  | ID DOT ID        { Noexpr                 }
+  | ID LBRAC expr RBRAC { Noexpr              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
 
