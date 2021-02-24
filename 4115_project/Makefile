@@ -8,18 +8,18 @@ test : all testall.sh
 # to test linking external code
 
 .PHONY : all
-all : microc.native printbig.o
+all : yagl.native printbig.o
 
-# "make microc.native" compiles the compiler
+# "make yagl.native" compiles the compiler
 #
 # The _tags file controls the operation of ocamlbuild, e.g., by including
 # packages, enabling warnings
 #
 # See https://github.com/ocaml/ocamlbuild/blob/master/manual/manual.adoc
 
-microc.native :
+yagl.native :
 	opam config exec -- \
-	ocamlbuild -use-ocamlfind microc.native
+	ocamlbuild -use-ocamlfind yagl.native
 
 # "make clean" removes all generated files
 
