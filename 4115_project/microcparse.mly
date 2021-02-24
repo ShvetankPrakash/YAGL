@@ -99,6 +99,8 @@ expr_opt:
 edge:
     ID ARROW LITERAL ID    { Noexpr }
   | ID ARROW LITERAL edge  { Noexpr }
+  | ID ARROW ID            { Noexpr }
+  | ID ARROW edge          { Noexpr }
 
 expr:
     LITERAL          { Literal($1)            }
