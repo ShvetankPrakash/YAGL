@@ -50,12 +50,12 @@ FAILS = \
 TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
 	    $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
 
-TARFILES = ast.ml sast.ml codegen.ml Makefile _tags microc.ml yaglparse.mly \
+TARFILES = ast.ml sast.ml codegen.ml Makefile _tags yagl.ml yaglparse.mly \
 	README scanner.mll semant.ml testall.sh \
 	printbig.c arcade-font.pbm font2c \
 	Dockerfile \
 	$(TESTFILES:%=tests/%) 
 
 yagl.tar.gz : $(TARFILES)
-	cd .. && tar czf microc/yagl.tar.gz \
+	cd .. && tar czf yagl/yagl.tar.gz \
 		$(TARFILES:%=yagl/%)

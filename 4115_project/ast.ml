@@ -1,11 +1,11 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or
+          And | Or (* | Arrow | Colon *)
 
 type uop = Neg | Not
 
-type typ = Int | Bool | Float | Void
+type typ = Int | Bool | Float | Void (* | Graph | Node *)
 
 type bind = typ * string
 
@@ -16,6 +16,9 @@ type expr =
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
+  | NodeOfGraph of string * string
+  | EdgeOp of expr * expr * op * expr * expr
+  | ChainedEdgeOp of expr * op * expr * expr
   | Assign of string * expr
   | Call of string * expr list
   | Noexpr
@@ -53,7 +56,10 @@ let string_of_op = function
   | Geq -> ">="
   | And -> "&&"
   | Or -> "||"
-
+  (*
+  | Arrow -> "->"
+  | Colon -> ":"
+*)
 let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
@@ -71,6 +77,14 @@ let rec string_of_expr = function
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
+  | EdgeOp(e1, e2, o, e3, e4) -> string_of_expr e1 ^ " "
+    ^ string_of_expr e2 ^ " " ^ string_of_op o ^ " " 
+    ^ string_of_expr e3 ^ " " ^ string_of_expr e4
+  | ChainedEdgeOp(e1, o, e2, e3) -> string_of_expr e1 ^ " "
+    ^ string_of_op o ^ " " 
+    ^ string_of_expr e2 ^ " " ^ string_of_expr e3
+  | NodeOfGraph(e1, e2) -> "(" ^  e1 ^ ", " 
+    ^ e2 ^ ")"
 
 let rec string_of_stmt = function
     Block(stmts) ->
@@ -90,7 +104,10 @@ let string_of_typ = function
   | Bool -> "bool"
   | Float -> "float"
   | Void -> "void"
-
+  (*
+  | Node -> "Node"
+  | Graph -> "Graph"
+*)
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
 let string_of_fdecl fdecl =

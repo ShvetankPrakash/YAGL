@@ -2,3 +2,5 @@
 *.ll
 *.err
 *.o
+*.diff
+4115_project/_build/_log

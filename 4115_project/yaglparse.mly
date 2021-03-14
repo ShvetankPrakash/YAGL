@@ -99,14 +99,14 @@ expr_opt:
   | expr          { $1 }
 
 edge:
-    ID ARROW LITERAL ID    { Noexpr }
-  | ID ARROW LITERAL edge  { Noexpr }
-  | ID ARROW ID            { Noexpr }
-  | ID ARROW edge          { Noexpr }
+    ID COLON ID ARROW LITERAL ID    { EdgeOp($1, $3, Plus, $5, $6) }
+  | ID COLON ID ARROW ID            { EdgeOp($1, $3, Plus, 1, $5) }
+  | edge ARROW LITERAL ID           { ChainedEdgeOp($1, Plus, $3, $4) }
+  | edge ARROW ID                   { ChainedEdgeOp($1, Plus, 1, $3) }
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	     { Fliteral($1)           }
+  | FLIT	           { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | CHRLIT           { Noexpr                 }
   | STRLIT           { Noexpr                 }
@@ -123,7 +123,7 @@ expr:
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
   | ID ASSIGN expr   { Assign($1, $3)         }
-  | ID COLON edge    { Noexpr                 } 
+  | edge             { $1                     } 
   | ID COLON expr QMARK expr { Noexpr         }
   | ID DOT ID        { Noexpr                 }
   | ID LBRAC expr RBRAC { Noexpr              }
