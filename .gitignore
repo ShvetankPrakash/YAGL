@@ -1,6 +1,4 @@
-
-*.ll
-*.err
-*.o
-*.diff
-4115_project/_build/_log
+_build
+yagl.native
+.DS_STORE
+4115_project_backup

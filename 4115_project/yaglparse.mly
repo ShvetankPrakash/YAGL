@@ -91,22 +91,15 @@ stmt:
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
   | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
-                                            { For($3, $5, $7, $9)   }
+                                            { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
 
 expr_opt:
     /* nothing */ { Noexpr }
   | expr          { $1 }
 
-edge:
-    ID COLON ID ARROW LITERAL ID    { EdgeOp($1, $3, Plus, $5, $6) }
-  | ID COLON ID ARROW ID            { EdgeOp($1, $3, Plus, 1, $5) }
-  | edge ARROW LITERAL ID           { ChainedEdgeOp($1, Plus, $3, $4) }
-  | edge ARROW ID                   { ChainedEdgeOp($1, Plus, 1, $3) }
-
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	           { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | CHRLIT           { Noexpr                 }
   | STRLIT           { Noexpr                 }
@@ -123,7 +116,6 @@ expr:
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
   | ID ASSIGN expr   { Assign($1, $3)         }
-  | edge             { $1                     } 
   | ID COLON expr QMARK expr { Noexpr         }
   | ID DOT ID        { Noexpr                 }
   | ID LBRAC expr RBRAC { Noexpr              }

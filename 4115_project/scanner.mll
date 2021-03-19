@@ -1,6 +1,6 @@
-(* Ocamllex scanner for MicroC *)
+(* Ocamllex scanner for YAGL *)
 
-{ open Microcparse }
+{ open Yaglparse }
 
 let digit = ['0' - '9']
 let digits = digit+
@@ -50,7 +50,7 @@ rule token = parse
 | digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | "'" escapeChars "'"                                 as lxm { CHRLIT(String.get lxm 0) } 
-| "'" ascii "'"                                       as lxm { CHRLIT(String.get lxm 0) }
+| "'" ascii "'"                                       as lxm { CHRLIT(String.get lxm 0) }    (* handle escape chars *)
 | '"' (ascii* escapeChars*)+ '"'                      as lxm { STRLIT(lxm) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }

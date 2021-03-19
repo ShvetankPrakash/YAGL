@@ -8,7 +8,7 @@ test : all testall.sh
 # to test linking external code
 
 .PHONY : all
-all : yagl.native printbig.o
+all : yagl.native # printbig.o
 
 # "make yagl.native" compiles the compiler
 #
