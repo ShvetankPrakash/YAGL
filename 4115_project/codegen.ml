@@ -72,7 +72,7 @@ let translate functions =
     let rec expr builder ((_, e) : sexpr) = match e with
 	SLiteral i  -> L.const_int i32_t i
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
-      | SCall ("print", [e]) | SCall ("printb", [e]) ->
+      | SCall ("printInt", [e]) | SCall ("printb", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
       | SCall ("printString", [e]) ->

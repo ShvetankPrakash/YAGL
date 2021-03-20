@@ -22,7 +22,7 @@ let check stmts =
       fname = name; 
       formals = [(ty, "x")];
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int); 
+    in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String)
                                                ]
   in

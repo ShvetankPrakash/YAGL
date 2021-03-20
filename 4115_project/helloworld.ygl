@@ -1,1 +1,2 @@
 printString("HelloWorld");
+printInt(0);
