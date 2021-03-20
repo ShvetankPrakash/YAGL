@@ -37,29 +37,9 @@ open Ast
 %%
 
 program:
-  decls EOF { $1 }
+  stmt_list EOF { List.rev $1 }
 
-decls:
-   /* nothing */ { ([], [])               }
- | decls vdecl { (($2 :: fst $1), snd $1) }
- | decls fdecl { (fst $1, ($2 :: snd $1)) }
-
-fdecl:
-   typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
-     { { typ = $1;
-	 fname = $2;
-	 formals = List.rev $4;
-	 locals = List.rev $7;
-	 body = List.rev $8 } }
-
-formals_opt:
-    /* nothing */ { [] }
-  | formal_list   { $1 }
-
-formal_list:
-    typ ID                   { [($1,$2)]     }
-  | formal_list COMMA typ ID { ($3,$4) :: $1 }
-
+/* 
 typ:
     INT    { Int    }
   | BOOL   { Bool   }
@@ -71,22 +51,15 @@ typ:
   | GRAPH  { Void   }
   | EDGE   { Void   }
   | typ LBRAC expr RBRAC { Void }
-
-vdecl_list:
-    /* nothing */    { [] }
-  | vdecl_list vdecl { $2 :: $1 }
-
-vdecl:
-     typ ID SEMI { ($1, $2) }  /* What does this do? */
-   | typ ID ASSIGN expr SEMI { ($1, $2) }
+*/
 
 stmt_list:
-    /* nothing */  { [] }
-  | stmt_list stmt { $2 :: $1 }
+  /* nothing */    { [] }
+  | stmt_list stmt { $2::$1 }
 
 stmt:
     expr SEMI                               { Expr $1               }
-  | RETURN expr_opt SEMI                    { Return $2             }
+  /* | RETURN expr_opt SEMI                 { Return $2             } */
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
@@ -94,9 +67,7 @@ stmt:
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
 
-expr_opt:
-    /* nothing */ { Noexpr }
-  | expr          { $1 }
+/* Need to add func_stmt which will be stmt | return expr */
 
 expr:
     LITERAL          { Literal($1)            }
@@ -119,8 +90,8 @@ expr:
   | ID COLON expr QMARK expr { Noexpr         }
   | ID DOT ID        { Noexpr                 }
   | ID LBRAC expr RBRAC { Noexpr              }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)  }
   | LPAREN expr RPAREN { $2                   }
+  | ID LPAREN args_opt RPAREN { Call($1, $3)  }  
 
 args_opt:
     /* nothing */ { [] }
