@@ -51,7 +51,7 @@ rule token = parse
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
 | "'" escapeChars "'"                                 as lxm { CHRLIT(String.get lxm 0) } 
 | "'" ascii "'"                                       as lxm { CHRLIT(String.get lxm 0) }    (* handle escape chars *)
-| '"' (ascii* escapeChars*)+ '"'                      as lxm { STRLIT(lxm) }
+| '"' (ascii* escapeChars*)+ '"'                      as lxm { STRLIT(String.sub lxm 1 ((String.length lxm )-2) ) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 

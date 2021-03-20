@@ -22,7 +22,9 @@ let check stmts =
       fname = name; 
       formals = [(ty, "x")];
       locals = []; body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", Int) ]
+    in List.fold_left add_bind StringMap.empty [ ("print", Int); 
+                                                 ("printString", String)
+                                               ]
   in
 
   (* Collect all function names into one symbol table *)
@@ -55,6 +57,7 @@ let check stmts =
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
+       | StrLit s -> (String, SStrLit s)
        | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
     in 
 

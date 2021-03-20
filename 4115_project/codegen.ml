@@ -34,7 +34,7 @@ let translate functions =
   (* Return the LLVM type for a MicroC type *)
   let ltype_of_typ = function
       A.Int   -> i32_t
-    (*| A.Char  -> i8_t *)
+    | A.String -> L.array_type i8_t 20
     | A.Void  -> void_t
   in
 
@@ -65,36 +65,18 @@ let translate functions =
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
-
-    (* Construct the function's "locals": formal arguments and locally
-       declared variables.  Allocate each on the stack, initialize their
-       value, if appropriate, and remember their values in the "locals" map *)
-    let local_vars =
-      let add_formal m (t, n) p = 
-        L.set_value_name n p;
-	let local = L.build_alloca (ltype_of_typ t) n builder in
-        ignore (L.build_store p local builder);
-	StringMap.add n local m 
-
-      (* Allocate space for any locally declared variables and add the
-       * resulting registers to our map *)
-      and add_local m (t, n) =
-	let local_var = L.build_alloca (ltype_of_typ t) n builder
-	in StringMap.add n local_var m 
-      in
-
-      let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
-          (Array.to_list (L.params the_function)) in
-      List.fold_left add_local formals fdecl.slocals 
-    in
-
+    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder 
+    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
 
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
 	SLiteral i  -> L.const_int i32_t i
+      | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SCall ("print", [e]) | SCall ("printb", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
+	    "printf" builder
+      | SCall ("printString", [e]) ->
+	  L.build_call printf_func [| string_format_str ; (expr builder e) |]
 	    "printf" builder
       | SCall ("printbig", [e]) ->
 	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
