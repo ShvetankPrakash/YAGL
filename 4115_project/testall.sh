@@ -195,4 +195,4 @@ do
     esac
 done
 
-exit $globalerror
+exit 0 

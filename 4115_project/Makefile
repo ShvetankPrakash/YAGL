@@ -4,6 +4,11 @@
 test : all testall.sh
 	./testall.sh
 
+# "make helloworld" compiles and runs helloworld.ygl
+.PHONY: helloworld
+helloworld :
+	./compile_and_run_helloworld.sh  
+
 # "make all" builds the executable as well as the "printbig" library designed
 # to test linking external code
 

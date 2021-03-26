@@ -31,7 +31,7 @@ let translate functions =
   and i8_t       = L.i8_type     context
   and void_t     = L.void_type   context in
 
-  (* Return the LLVM type for a MicroC type *)
+  (* Return the LLVM type for a YAGL type *)
   let ltype_of_typ = function
       A.Int   -> i32_t
     | A.String -> L.array_type i8_t 20
