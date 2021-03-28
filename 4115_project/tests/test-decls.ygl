@@ -8,10 +8,14 @@ int printHello(int a) {
 
 String printHello2() {
   
-  return 0;
+  int a;
+  {
+    int a;
 
+    printInt(a);
+  }
 }
 
-printHello(7);
+
 printHello2();
 

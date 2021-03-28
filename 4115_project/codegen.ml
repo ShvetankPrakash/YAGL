@@ -68,9 +68,46 @@ let translate functions =
     and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder 
     and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
 
+    
+    (* Construct the function's "locals": formal arguments and locally
+       declared variables.  Allocate each on the stack, initialize their
+       value, if appropriate, and remember their values in the "locals" map *)
+    let local_vars =
+      let add_formal m (t, n) p = 
+        L.set_value_name n p;
+  let local = L.build_alloca (ltype_of_typ t) n builder in
+        ignore (L.build_store p local builder);
+  StringMap.add n local m 
+
+      (* Allocate space for any locally declared variables and add the
+       * resulting registers to our map *)
+      and add_local m (t, n) =
+  let local_var = L.build_alloca (ltype_of_typ t) n builder
+  in StringMap.add n local_var m 
+      in
+
+      let formals = List.fold_left2 add_formal StringMap.empty fdecl.sformals
+          (Array.to_list (L.params the_function)) in
+      List.fold_left add_local formals (List.fold_left 
+
+      (fun bind_list stmt -> 
+        match stmt with
+          SBinding b -> b :: bind_list
+        | _ -> bind_list 
+      ) [] fdecl.sbody)
+
+    in
+
+    (* Return the value for a variable or formal argument.
+       Check local names first, then global names *)
+    let lookup n = (* try *) StringMap.find n local_vars
+                  (* with Not_found -> StringMap.find n global_vars *)
+    in
+
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
-	SLiteral i  -> L.const_int i32_t i
+	      SLiteral i  -> L.const_int i32_t i
+      | SId s       -> L.build_load (lookup s) s builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SCall ("printInt", [e]) | SCall ("printb", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
@@ -109,6 +146,7 @@ let translate functions =
     let rec stmt builder = function
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
+      | SBinding (typ, id) -> builder
       | _ -> raise (Failure("Only support expression statements currently."))
 
     in

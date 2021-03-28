@@ -1,19 +1,19 @@
 #!/bin/bash
 make clean && make all
 echo "---------------SRC--------------"
-cat helloworld.ygl
+cat "${1}.ygl"
 echo "---------------AST--------------"
-./yagl.native -a helloworld.ygl
+./yagl.native -a "${1}.ygl"
 echo "---------------SAST--------------"
-./yagl.native -s helloworld.ygl
+./yagl.native -s "${1}.ygl"
 echo "---------------LLVM IR--------------"
-./yagl.native -l helloworld.ygl
-./yagl.native -l helloworld.ygl > helloworld.ll
-llc -relocation-model=pic helloworld.ll > helloworld.s
+./yagl.native -l "${1}.ygl"
+./yagl.native -l "${1}.ygl" > "${1}.ll"
+llc -relocation-model=pic "${1}.ll" > "${1}.s"
 echo "---------------ASSEMBLY--------------"
-cat helloworld.s
+cat "${1}.s"
 cc -c printbig.c
-cc -o helloworld.exe helloworld.s printbig.o
+cc -o "${1}.exe" "${1}.s" printbig.o
 echo "---------------EXE OUTPUT--------------"
-./helloworld.exe
+"./${1}.exe"
 rm printbig.o
