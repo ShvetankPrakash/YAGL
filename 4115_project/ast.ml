@@ -27,16 +27,16 @@ type stmt =
   | If of expr * stmt * stmt
   | Bfs of expr * expr * expr * stmt
   | While of expr * stmt
+  | Binding of bind      (* Only for vdecls *)
 
 type func_decl = {
     typ : typ;
     fname : string;
     formals : bind list;
-    locals : bind list;
     body : stmt list;
   }
 
-type program = stmt list
+type program = stmt list * func_decl list
 
 (* Pretty-printing functions *)
 
@@ -86,6 +86,11 @@ let rec string_of_expr = function
     ^ e2 ^ ")"
   *)
 
+let string_of_typ = function
+    Void -> "void"
+  | Int -> "int"
+  | String -> "String"
+
 let rec string_of_stmt = function
     Block(stmts) ->
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
@@ -97,11 +102,16 @@ let rec string_of_stmt = function
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+  | Binding(t, id) -> string_of_typ t ^ " " ^ id ^ ";\n"
 
-let string_of_program (stmts) =
-  String.concat "" (List.map string_of_stmt stmts) ^ "\n"
+let string_of_fdecl fdecl =
+  string_of_typ fdecl.typ ^ " " ^
+  fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
+  ")\n{\n" ^
+  String.concat "" (List.map string_of_stmt fdecl.body) ^
+  "}\n"
 
-let string_of_typ = function
-    Void -> "void"
-  | Int -> "int"
-  | String -> "String"
+let string_of_program (stmts, funcs) =
+  String.concat "" (List.map string_of_stmt stmts) ^ "\n" ^
+  String.concat "\n" (List.map string_of_fdecl funcs)
+

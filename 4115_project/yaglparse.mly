@@ -37,20 +37,48 @@ open Ast
 %%
 
 program:
-  stmt_list EOF { List.rev $1 }
+  src_file EOF { (List.rev (fst $1), snd $1) }
 
-/* 
+src_file:
+   /* nothing */ { ([], [])               }
+ | src_file stmt { (($2 :: fst $1), snd $1) }
+ | src_file fdecl { (fst $1, ($2 :: snd $1)) }
+
 typ:
     INT    { Int    }
-  | BOOL   { Bool   }
-  | FLOAT  { Float  }
+  | STRING { String }
   | VOID   { Void   }
+/*| BOOL   { Bool   }
+  | FLOAT  { Float  }
   | CHAR   { Void   }
-  | STRING { Void   }
   | NODE   { Void   }
   | GRAPH  { Void   }
   | EDGE   { Void   }
   | typ LBRAC expr RBRAC { Void }
+*/
+fdecl:
+   typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+     { { typ = $1;
+	 fname = $2;
+	 formals = List.rev $4;
+	 body = List.rev $7 } }
+
+formals_opt:
+    /* nothing */ { [] }
+  | formal_list   { $1 }
+
+formal_list:
+    typ ID                   { [($1,$2)]     }
+  | formal_list COMMA typ ID { ($3,$4) :: $1 }
+
+vdecl:
+     typ ID SEMI { ($1, $2) } 
+
+/*
+Add variable assignment in same stmt
+vdecl:
+     typ ID SEMI { ($1, $2, Noexpr) } 
+   | typ ID ASSIGN expr SEMI { ($1, $2, $3) }
 */
 
 stmt_list:
@@ -66,6 +94,7 @@ stmt:
   | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
+  | vdecl                                   { Binding($1)           }
 
 /* Need to add func_stmt which will be stmt | return expr */
 

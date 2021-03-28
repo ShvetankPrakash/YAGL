@@ -21,7 +21,7 @@ let check stmts =
       typ = Void;
       fname = name; 
       formals = [(ty, "x")];
-      locals = []; body = [] } map
+      body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String)
                                                ]
