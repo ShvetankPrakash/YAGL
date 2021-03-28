@@ -2,6 +2,6 @@ _build
 yagl.native
 .DS_STORE
 *.o
-*.err
 *.s
 *.ll
+*.exe
