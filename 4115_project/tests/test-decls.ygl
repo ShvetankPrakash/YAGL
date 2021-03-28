@@ -1,0 +1,17 @@
+
+int a;
+
+int printHello(int a) {
+  printString("Hello World!\n");
+  printInt(a);
+}
+
+String printHello2() {
+  
+  return 0;
+
+}
+
+printHello(7);
+printHello2();
+

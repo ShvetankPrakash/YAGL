@@ -26,11 +26,10 @@ type sfunc_decl = {
     styp : typ;
     sfname : string;
     sformals : bind list;
-    slocals : bind list;
     sbody : sstmt list;
   }
 
-type sprogram = sstmt list * sfunc_decl list
+type sprogram = sfunc_decl list
 
 (* Pretty-printing functions *)
 
@@ -62,7 +61,7 @@ let rec string_of_sstmt = function
       "for (" ^ string_of_sexpr e1  ^ " ; " ^ string_of_sexpr e2 ^ " ; " ^
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
-  | SBinding(t, id) -> string_of_typ t ^ " " ^ id ^ ";\n"
+  | SBinding(t, id) -> "(" ^ string_of_typ t ^ " : " ^ id ^ ");\n"
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.styp ^ " " ^
@@ -71,7 +70,6 @@ let string_of_sfdecl fdecl =
   String.concat "" (List.map string_of_sstmt fdecl.sbody) ^
   "}\n"
 
-let string_of_sprogram (stmts, funcs) =
-  String.concat "" (List.map string_of_sstmt stmts) ^ "\n" ^
+let string_of_sprogram (funcs) =
   String.concat "\n" (List.map string_of_sfdecl funcs)
 

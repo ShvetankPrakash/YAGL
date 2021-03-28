@@ -28,6 +28,7 @@ type stmt =
   | Bfs of expr * expr * expr * stmt
   | While of expr * stmt
   | Binding of bind      (* Only for vdecls *)
+  | Return of expr
 
 type func_decl = {
     typ : typ;
