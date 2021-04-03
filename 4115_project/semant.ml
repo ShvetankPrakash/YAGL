@@ -151,11 +151,16 @@ let check_function func =
        | Literal  l -> (Int, SLiteral l)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
+       | Assign(var, e) as ex -> 
+          let lt = type_of_identifier var
+          and (rt, e') = expr e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+            string_of_typ rt ^ " in " ^ string_of_expr ex
+          in (check_assign lt rt err, SAssign(var, (rt, e')))
 
       | BoolLit a -> raise (Failure("Boolit ERROR")) 
       | Binop (a, b, c) -> raise (Failure("Binop ERROR")) 
       | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-      | Assign (a, b) -> raise (Failure("Assign ERROR")) 
       | Call (fname, args) as call -> raise (Failure("Call ERROR")) 
       | Noexpr -> raise (Failure("Noexpr ERROR")) 
        | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
