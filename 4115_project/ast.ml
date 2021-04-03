@@ -5,7 +5,7 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
 
 type uop = Neg | Not
 
-type typ = Void | Int | String
+type typ = Void | Int | String | Bool
 
 type bind = typ * string
 
@@ -88,9 +88,10 @@ let rec string_of_expr = function
   *)
 
 let string_of_typ = function
-    Void -> "void"
-  | Int -> "int"
+    Void   -> "void"
+  | Int    -> "int"
   | String -> "String"
+  | Bool   -> "bool"
 
 let rec string_of_stmt = function
     Block(stmts) ->

@@ -48,7 +48,8 @@ typ:
     INT    { Int    }
   | STRING { String }
   | VOID   { Void   }
-/*| BOOL   { Bool   }
+  | BOOL   { Bool   }
+/*
   | FLOAT  { Float  }
   | CHAR   { Void   }
   | NODE   { Void   }
