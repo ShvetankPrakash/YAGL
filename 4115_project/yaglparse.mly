@@ -73,16 +73,6 @@ formal_list:
     typ ID                   { [($1,$2)]     }
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
-vdecl:
-     typ ID SEMI { ($1, $2) } 
-
-/*
-Add variable assignment in same stmt
-vdecl:
-     typ ID SEMI { ($1, $2, Noexpr) } 
-   | typ ID ASSIGN expr SEMI { ($1, $2, $3) }
-*/
-
 stmt_list:
   /* nothing */    { [] }
   | stmt_list stmt { $2::$1 }
@@ -96,7 +86,8 @@ stmt:
   | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
-  | vdecl                                   { Binding($1)           }
+  | typ ID SEMI                             { Binding($1, $2)       }
+  | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4)) }
 
 expr_opt: /* can be expr or nothing */
         /* epsilon/nothing */   { Noexpr }

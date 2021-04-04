@@ -98,6 +98,7 @@ let translate functions =
       (fun bind_list stmt -> 
         match stmt with
           SBinding b -> b :: bind_list
+        | SBinding_Assign (b, e) -> b :: bind_list
         | _ -> bind_list 
       ) [] fdecl.sbody)
 
@@ -187,6 +188,7 @@ let translate functions =
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
       | SBinding (typ, id) -> builder
+      | SBinding_Assign ((typ, id), e) -> (expr builder e); builder
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder
