@@ -116,6 +116,8 @@ let translate functions =
       | SId s       -> L.build_load (lookup s) s builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
+      | SAssign (s, e) -> let e' = expr builder e in
+                          ignore(L.build_store e' (lookup s) builder); e'
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
