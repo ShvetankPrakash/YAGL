@@ -127,7 +127,20 @@ let translate functions =
 	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
-	  ) e1' e2' "tmp" builder*)
+	  ) e1' e2' "tmp" builder
+          
+          (match op with
+	    A.Add     -> ()
+            | _ ->
+                raise (Failure ("String " ^ string_of_sexpr s1 ^ " + " ^ string_of_sexpr s2 ))
+          )
+          *)
+      | SBinop (x, op, x2) ->
+          (match x, op, x2 with 
+             (a, SStrLit(b)), A.Add, (c, SStrLit(d)) ->
+                L.build_global_stringptr (b ^ d) "fmt" builder
+             | _ ->  raise (Failure ("xxxx"))
+          )
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in

@@ -168,7 +168,7 @@ let check_function func =
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
-          (*| Add when same && t1 = String   -> String*)
+          | Add when same && t1 = String   -> String
           (*| Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal                  when same               -> Bool
           | Less | Greater
