@@ -84,7 +84,7 @@ let check (stmts, funcs) =
       body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String);
-                                                 ("printBool", Bool)
+                                                 ("printBool", Bool);
                                                  ("printFloat", Float)
                                                ]
   in
