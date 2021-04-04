@@ -11,11 +11,6 @@ module StringMap = Map.Make(String)
    Check each statement *)
 
 let check (stmts, funcs) =
-  let longest_string =
-          List.fold_left (fun s e -> 
-                  if String.length s > String.length e.fname 
-                        then s else e.fname) "" funcs
-  in
   let main = 
      {
        typ = Void;
