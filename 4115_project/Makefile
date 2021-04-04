@@ -33,6 +33,8 @@ clean :
 	ocamlbuild -clean
 	rm -rf testall.log ocamlllvm *.diff
 	rm -rf printbig.o
+	rm -rf fail-*.err
+	rm -rf test-*.out
 
 # Testing the "printbig" example
 

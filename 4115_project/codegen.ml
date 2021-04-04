@@ -37,7 +37,7 @@ let translate functions =
   let ltype_of_typ = function
       A.Int   -> i32_t
     | A.Float -> float_t  
-    | A.String -> L.array_type i8_t 20
+    | A.String -> L.pointer_type i8_t
     | A.Void   -> void_t
     | A.Bool   -> i1_t 
   in
@@ -159,6 +159,13 @@ let translate functions =
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
       | SBinding (typ, id) -> builder
+      | SReturn e -> ignore(match fdecl.styp with
+                (* Special "return nothing" instr *)
+                A.Void -> L.build_ret_void builder
+                (* Build return statement *)
+                | _ -> L.build_ret (expr builder e) builder );
+            builder
+
       | _ -> raise (Failure("Only support expression statements currently."))
 
     in
