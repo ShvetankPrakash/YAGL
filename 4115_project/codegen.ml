@@ -135,11 +135,11 @@ let translate functions =
                 raise (Failure ("String " ^ string_of_sexpr s1 ^ " + " ^ string_of_sexpr s2 ))
           )
           *)
-      | SBinop (x, op, x2) ->
+      | SBinop (((A.String,_ )) as x, op, x2) ->
           (match x, op, x2 with 
              (a, SStrLit(b)), A.Add, (c, SStrLit(d)) ->
                 L.build_global_stringptr (b ^ d) "fmt" builder
-             | _ ->  raise (Failure ("xxxx"))
+             | _ ->  raise (Failure ("Can only concatenate strings (+ operator)."))
           )
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder e1
