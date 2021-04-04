@@ -128,12 +128,6 @@ let translate functions =
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
-          
-          (match op with
-	    A.Add     -> ()
-            | _ ->
-                raise (Failure ("String " ^ string_of_sexpr s1 ^ " + " ^ string_of_sexpr s2 ))
-          )
           *)
       | SBinop (((A.String,_ )) as x, op, x2) ->
           (match x, op, x2 with 
