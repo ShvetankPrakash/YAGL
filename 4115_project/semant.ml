@@ -83,7 +83,8 @@ let check (stmts, funcs) =
       formals = [(ty, "x")];
       body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
-                                                 ("printString", String)
+                                                 ("printString", String);
+                                                 ("printFloat", Float)
                                                ]
   in
 
@@ -149,6 +150,7 @@ let check_function func =
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
+       | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
 
@@ -158,7 +160,7 @@ let check_function func =
       | Assign (a, b) -> raise (Failure("Assign ERROR")) 
       | Call (fname, args) as call -> raise (Failure("Call ERROR")) 
       | Noexpr -> raise (Failure("Noexpr ERROR")) 
-       | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
+       | _ -> raise (Failure("Error 1: Ints, floats and calls are supported exressions currently.")) 
     in 
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
