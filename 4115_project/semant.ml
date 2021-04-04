@@ -11,7 +11,11 @@ module StringMap = Map.Make(String)
    Check each statement *)
 
 let check (stmts, funcs) =
-
+  let longest_string =
+          List.fold_left (fun s e -> 
+                  if String.length s > String.length e.fname 
+                        then s else e.fname) "" funcs
+  in
   let main = 
      {
        typ = Void;
@@ -91,11 +95,15 @@ let check (stmts, funcs) =
   let add_func map fd = 
     let built_in_err = "function " ^ fd.fname ^ " may not be defined"
     and dup_err = "duplicate function " ^ fd.fname
+    and main_err = "reserved function name: " ^ fd.fname ^ " cannot be used"
     and make_err er = raise (Failure er)
     and n = fd.fname (* Name of the function *)
     in match fd with (* No duplicate functions or redefinitions of built-ins *)
          _ when StringMap.mem n built_in_decls -> make_err built_in_err
-       | _ when StringMap.mem n map -> make_err dup_err  
+       | _ when StringMap.mem n map -> 
+                       if compare n "main" == 0
+                        then  make_err main_err
+                        else make_err dup_err  
        | _ ->  StringMap.add n fd map 
   in
 
@@ -140,6 +148,9 @@ let check_function func =
           if List.length args != param_length then
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
+          else if compare fname "main" == 0 then
+            (* TODO: IF we add globals then we can remove this... thoughts? *)
+            raise (Failure ("Cannot call main otherwise recurse forever"))
           else let check_call (ft, _) e = 
             let (et, e') = expr e in 
             let err = "illegal argument found " ^ string_of_typ et ^
