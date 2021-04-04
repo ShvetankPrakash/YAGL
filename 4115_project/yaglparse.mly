@@ -50,7 +50,8 @@ typ:
   | FLOAT  { Float  }
   | STRING { String }
   | VOID   { Void   }
-/*| BOOL   { Bool   }
+  | BOOL   { Bool   }
+/*
   | CHAR   { Void   }
   | NODE   { Void   }
   | GRAPH  { Void   }

@@ -84,6 +84,7 @@ let check (stmts, funcs) =
       body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String);
+                                                 ("printBool", Bool)
                                                  ("printFloat", Float)
                                                ]
   in
@@ -153,14 +154,13 @@ let check_function func =
        | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
-
-      | BoolLit a -> raise (Failure("Boolit ERROR")) 
-      | Binop (a, b, c) -> raise (Failure("Binop ERROR")) 
-      | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-      | Assign (a, b) -> raise (Failure("Assign ERROR")) 
-      | Call (fname, args) as call -> raise (Failure("Call ERROR")) 
-      | Noexpr -> raise (Failure("Noexpr ERROR")) 
-       | _ -> raise (Failure("Error 1: Ints, floats and calls are supported exressions currently.")) 
+       | BoolLit b -> (Bool, SBoolLit b)
+       (* Exprs still to implement below *) 
+       | Binop (_, _, _) -> raise (Failure("Binop ERROR")) 
+       | Unop (_, _) -> raise (Failure("Unop ERROR")) 
+       | Assign (_, _) -> raise (Failure("Assign ERROR")) 
+       | Noexpr -> raise (Failure("Noexpr ERROR")) 
+       | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
     in 
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
