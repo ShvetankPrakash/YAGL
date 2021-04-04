@@ -1,1 +1,1 @@
-Fatal error: exception Failure("illegal binary operator int + String in 5 + hi")
+Fatal error: exception Failure("illegal assignment int = String in qqq = hi")  
