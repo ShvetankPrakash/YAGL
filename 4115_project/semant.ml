@@ -170,8 +170,8 @@ let check_function func =
       | Return e -> let (t, e') = expr e in
                 if t = func.typ then SReturn (t, e')
                 else raise (
-                        Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-                                 string_of_typ func.typ ^ " in " ^ string_of_expr e))
+                        Failure ("return gives " ^ string_of_typ t ^ ", but expected " ^
+                                 string_of_typ func.typ ^ " in return " ^ string_of_expr e))
       (* A block is correct if each statement is correct and nothing
          follows any Return statement.  Nested blocks are flattened. *)
       (* TODO: If we want scoping and declaring variables in a nested

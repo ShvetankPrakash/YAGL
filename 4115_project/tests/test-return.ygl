@@ -3,3 +3,9 @@ String sreturned(int x) {
 	printInt(x);
 	return "Hello World Returned!";
 }
+
+int ireturned(int x) {
+	return x;
+}
+
+printInt(ireturned(5559));
