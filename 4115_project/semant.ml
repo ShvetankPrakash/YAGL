@@ -179,16 +179,29 @@ let check_function func =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))       
-        | Assign(var, e) as ex -> 
-          let lt = type_of_identifier var
-          and (rt, e') = expr e in
-          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
-            string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign(var, (rt, e')))
+        | Assign(var, e1, e2) as ex -> 
+          let (rvalue, lt) = match e2 with 
+              Noexpr -> (e1, type_of_identifier var)
+            | _      -> let elem_typ = type_of_identifier var in 
+                        ( match elem_typ  with 
+                            Array(t, e) -> (e2, t)
+                          | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+                        )
+          in
+            let (rt, e') = expr rvalue in
+            let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+              string_of_typ rt ^ " in " ^ string_of_expr ex
+            in (check_assign lt rt err, SAssign(var, expr e1, expr e2))
        | BoolLit b -> (Bool, SBoolLit b)
+       | Access (s, e) -> 
+         let elem_typ = type_of_identifier s in 
+         ( match elem_typ  with 
+             Array(t, e) -> (t, SAccess(s, expr e))
+           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+         )
+       | Noexpr -> (Void, SNoexpr) 
        (* Exprs still to implement below *) 
        | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-       | Noexpr -> raise (Failure("Noexpr ERROR"))
        | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
     in 
 
