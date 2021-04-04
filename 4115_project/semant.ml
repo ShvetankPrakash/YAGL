@@ -167,11 +167,16 @@ let check_function func =
       | If(p, b1, b2) -> raise (Failure "fail if")
       | Bfs(e1, e2, e3, st) -> raise (Failure "fail for")
       | While(p, s) -> raise (Failure "fail while")
-      | Return e -> raise (Failure "fail return")
-        
+      | Return e -> let (t, e') = expr e in
+                if t = func.typ then SReturn (t, e')
+                else raise (
+                        Failure ("return gives " ^ string_of_typ t ^ " expected " ^
+                                 string_of_typ func.typ ^ " in " ^ string_of_expr e))
       (* A block is correct if each statement is correct and nothing
          follows any Return statement.  Nested blocks are flattened. *)
-      | Block sl -> 
+      (* TODO: If we want scoping and declaring variables in a nested
+       * block, then we cannot simply flatten                        *)
+      | Block sl ->
           let rec check_stmt_list = function
               [Return _ as s] -> [check_stmt s]
             | Return _ :: _   -> raise (Failure "nothing may follow a return")

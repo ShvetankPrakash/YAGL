@@ -1,0 +1,5 @@
+printString(sreturned(55));
+String sreturned(int x) {
+	printInt(x);
+	return "Hello World Returned!";
+}

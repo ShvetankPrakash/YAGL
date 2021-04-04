@@ -104,6 +104,7 @@ let rec string_of_stmt = function
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | Binding(t, id) -> string_of_typ t ^ " " ^ id ^ ";\n"
+  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n" 
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^
