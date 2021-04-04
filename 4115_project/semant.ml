@@ -83,7 +83,9 @@ let check (stmts, funcs) =
       formals = [(ty, "x")];
       body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
-                                                 ("printString", String)
+                                                 ("printString", String);
+                                                 ("printBool", Bool);
+                                                 ("printFloat", Float)
                                                ]
   in
 
@@ -149,15 +151,20 @@ let check_function func =
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
+       | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
-
-      | BoolLit a -> raise (Failure("Boolit ERROR")) 
-      | Binop (a, b, c) -> raise (Failure("Binop ERROR")) 
-      | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-      | Assign (a, b) -> raise (Failure("Assign ERROR")) 
-      | Call (fname, args) as call -> raise (Failure("Call ERROR")) 
-      | Noexpr -> raise (Failure("Noexpr ERROR")) 
+       | Assign(var, e) as ex -> 
+          let lt = type_of_identifier var
+          and (rt, e') = expr e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+            string_of_typ rt ^ " in " ^ string_of_expr ex
+          in (check_assign lt rt err, SAssign(var, (rt, e')))
+       | BoolLit b -> (Bool, SBoolLit b)
+       (* Exprs still to implement below *) 
+       | Binop (_, _, _) -> raise (Failure("Binop ERROR")) 
+       | Unop (_, _) -> raise (Failure("Unop ERROR")) 
+       | Noexpr -> raise (Failure("Noexpr ERROR")) 
        | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
     in 
 
