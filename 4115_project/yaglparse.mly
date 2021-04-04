@@ -10,10 +10,11 @@ open Ast
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
+%token <float> FLIT
 %token <bool> BLIT
 %token <char> CHRLIT
 %token <string> STRLIT
-%token <string> ID FLIT
+%token <string> ID /* FLIT Note: not sure what "FLIT" was referring to here */
 %token EOF
 
 %start program
@@ -46,11 +47,11 @@ src_file:
 
 typ:
     INT    { Int    }
+  | FLOAT  { Float  }
   | STRING { String }
   | VOID   { Void   }
   | BOOL   { Bool   }
 /*
-  | FLOAT  { Float  }
   | CHAR   { Void   }
   | NODE   { Void   }
   | GRAPH  { Void   }
@@ -101,6 +102,7 @@ stmt:
 
 expr:
     LITERAL          { Literal($1)            }
+  | FLIT             { FLit($1)               }
   | BLIT             { BoolLit($1)            }
   | CHRLIT           { Noexpr                 }
   | STRLIT           { StrLit($1)             }

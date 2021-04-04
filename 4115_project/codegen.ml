@@ -28,13 +28,15 @@ let translate functions =
 
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
+  and float_t    = L.float_type  context
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and void_t     = L.void_type   context in
 
   (* Return the LLVM type for a YAGL type *)
   let ltype_of_typ = function
-      A.Int    -> i32_t
+      A.Int   -> i32_t
+    | A.Float -> float_t  
     | A.String -> L.array_type i8_t 20
     | A.Void   -> void_t
     | A.Bool   -> i1_t 
@@ -109,13 +111,17 @@ let translate functions =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
-        SLiteral i  -> L.const_int i32_t i
+	      SLiteral i  -> L.const_int i32_t i
+      | SFLit f -> L.const_float float_t f
       | SId s       -> L.build_load (lookup s) s builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
+      | SCall ("printFloat", [e]) ->
+    L.build_call printf_func [| float_format_str ; (expr builder e) |]
+      "printf" builder
       | SCall ("printString", [e]) ->
 	  L.build_call printf_func [| string_format_str ; (expr builder e) |]
 	    "printf" builder

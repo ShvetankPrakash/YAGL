@@ -85,6 +85,7 @@ let check (stmts, funcs) =
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String);
                                                  ("printBool", Bool)
+                                                 ("printFloat", Float)
                                                ]
   in
 
@@ -150,6 +151,7 @@ let check_function func =
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
+       | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
        | BoolLit b -> (Bool, SBoolLit b)

@@ -5,6 +5,7 @@ open Ast
 type sexpr = typ * sx
 and sx =
     SLiteral of int
+  | SFLit of float
   | SBoolLit of bool
   | SStrLit of string
   | SId of string
@@ -36,6 +37,7 @@ type sprogram = sfunc_decl list
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
     SLiteral(l) -> string_of_int l
+  | SFLit(f) -> string_of_float f
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
   | SStrLit(str) -> str
