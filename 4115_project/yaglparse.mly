@@ -10,10 +10,11 @@ open Ast
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
+%token <float> FLIT
 %token <bool> BLIT
 %token <char> CHRLIT
 %token <string> STRLIT
-%token <string> ID FLIT
+%token <string> ID /* FLIT Note: not sure what "FLIT" was referring to here */
 %token EOF
 
 %start program
@@ -46,10 +47,11 @@ src_file:
 
 typ:
     INT    { Int    }
+  | FLOAT  { Float  }
   | STRING { String }
   | VOID   { Void   }
-/*| BOOL   { Bool   }
-  | FLOAT  { Float  }
+  | BOOL   { Bool   }
+/*
   | CHAR   { Void   }
   | NODE   { Void   }
   | GRAPH  { Void   }
@@ -87,7 +89,7 @@ stmt_list:
 
 stmt:
     expr SEMI                               { Expr $1               }
-  /* | RETURN expr_opt SEMI                 { Return $2             } */
+  | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
@@ -96,10 +98,15 @@ stmt:
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
   | vdecl                                   { Binding($1)           }
 
-/* Need to add func_stmt which will be stmt | return expr */
+expr_opt: /* can be expr or nothing */
+        /* epsilon/nothing */   { Noexpr }
+      | expr                    { $1     }
+
+
 
 expr:
     LITERAL          { Literal($1)            }
+  | FLIT             { FLit($1)               }
   | BLIT             { BoolLit($1)            }
   | CHRLIT           { Noexpr                 }
   | STRLIT           { StrLit($1)             }

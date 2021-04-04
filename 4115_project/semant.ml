@@ -83,7 +83,9 @@ let check (stmts, funcs) =
       formals = [(ty, "x")];
       body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
-                                                 ("printString", String)
+                                                 ("printString", String);
+                                                 ("printBool", Bool);
+                                                 ("printFloat", Float)
                                                ]
   in
 
@@ -149,6 +151,7 @@ let check_function func =
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
+       | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
        | Binop(e1, op, e2) as e -> 
@@ -169,12 +172,17 @@ let check_function func =
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
-          in (ty, SBinop((t1, e1'), op, (t2, e2')))
-      | BoolLit a -> raise (Failure("Boolit ERROR")) 
-      | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-      | Assign (a, b) -> raise (Failure("Assign ERROR")) 
-      | Call (fname, args) as call -> raise (Failure("Call ERROR")) 
-      | Noexpr -> raise (Failure("Noexpr ERROR")) 
+          in (ty, SBinop((t1, e1'), op, (t2, e2')))       
+        | Assign(var, e) as ex -> 
+          let lt = type_of_identifier var
+          and (rt, e') = expr e in
+          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+            string_of_typ rt ^ " in " ^ string_of_expr ex
+          in (check_assign lt rt err, SAssign(var, (rt, e')))
+       | BoolLit b -> (Bool, SBoolLit b)
+       (* Exprs still to implement below *) 
+       | Unop (a, b) -> raise (Failure("Unop ERROR")) 
+       | Noexpr -> raise (Failure("Noexpr ERROR"))
        | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
     in 
 
@@ -184,11 +192,16 @@ let check_function func =
       | If(p, b1, b2) -> raise (Failure "fail if")
       | Bfs(e1, e2, e3, st) -> raise (Failure "fail for")
       | While(p, s) -> raise (Failure "fail while")
-      | Return e -> raise (Failure "fail return")
-        
+      | Return e -> let (t, e') = expr e in
+                if t = func.typ then SReturn (t, e')
+                else raise (
+                        Failure ("return gives " ^ string_of_typ t ^ ", but expected " ^
+                                 string_of_typ func.typ ^ " in return " ^ string_of_expr e))
       (* A block is correct if each statement is correct and nothing
          follows any Return statement.  Nested blocks are flattened. *)
-      | Block sl -> 
+      (* TODO: If we want scoping and declaring variables in a nested
+       * block, then we cannot simply flatten                        *)
+      | Block sl ->
           let rec check_stmt_list = function
               [Return _ as s] -> [check_stmt s]
             | Return _ :: _   -> raise (Failure "nothing may follow a return")

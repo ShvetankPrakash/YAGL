@@ -5,6 +5,7 @@ open Ast
 type sexpr = typ * sx
 and sx =
     SLiteral of int
+  | SFLit of float
   | SBoolLit of bool
   | SStrLit of string
   | SId of string
@@ -21,6 +22,7 @@ type sstmt =
   | SBfs of sexpr * sexpr * sexpr * sstmt
   | SWhile of sexpr * sstmt
   | SBinding of bind  
+  | SReturn of sexpr 
 
 type sfunc_decl = {
     styp : typ;
@@ -36,6 +38,7 @@ type sprogram = sfunc_decl list
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
     SLiteral(l) -> string_of_int l
+  | SFLit(f) -> string_of_float f
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
   | SStrLit(str) -> str
@@ -62,6 +65,7 @@ let rec string_of_sstmt = function
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
   | SBinding(t, id) -> "(" ^ string_of_typ t ^ " : " ^ id ^ ");\n"
+  | SReturn(e) -> "return " ^ string_of_sexpr e ^ ";\n" 
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.styp ^ " " ^
