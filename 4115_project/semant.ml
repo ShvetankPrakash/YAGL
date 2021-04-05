@@ -169,11 +169,11 @@ let check_function func =
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
           (*| Add when same && t1 = String   -> String*)
-          (*| Add | Sub | Mult | Div when same && t1 = Float -> Float
+          | Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal                  when same               -> Bool
           | Less | Greater
                      when same && (t1 = Int || t1 = Float) -> Bool
-          | And | Or when same && t1 = Bool -> Bool*)
+          | And | Or when same && t1 = Bool -> Bool
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -190,14 +190,20 @@ let check_function func =
        | Unop (a, b) -> raise (Failure("Unop ERROR")) 
        | Noexpr -> raise (Failure("Noexpr ERROR"))
        | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
+    in
+
+    let check_bool_expr e = 
+      let (t', e') = expr e
+      and err = "expected Boolean expression in " ^ string_of_expr e
+      in if t' != Bool then raise (Failure err) else (t', e') 
     in 
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
-      | If(p, b1, b2) -> raise (Failure "fail if")
+      | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | Bfs(e1, e2, e3, st) -> raise (Failure "fail for")
-      | While(p, s) -> raise (Failure "fail while")
+      | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
                 if t = func.typ then SReturn (t, e')
                 else raise (
