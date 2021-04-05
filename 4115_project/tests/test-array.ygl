@@ -1,11 +1,36 @@
-int b;
-5;
-int[5] a;
-a[0];
+int[7] a;
 a[0] = 9;
-/* a[0] = 1; */
-/* printInt(a[0]); */
+printInt(a[0]);
+a[0] = 42;
+printInt(a[0]);
+a[3] = 0;
+int c;
+c = a[3];
+printInt(c);
+/*printInt(a[c]);*/
 
+
+bool foo() {
+   bool[10] bar;
+   bar[6] = true; 
+   return bar[6];
+}
+bool temp;
+temp = foo();
+printBool(temp);
+
+String[3] strs;
+strs[0] = "Hi,";
+strs[1] = "my name is";
+strs[2] = "Bob";
+printString(strs[0]);
+printString(strs[1]);
+printString(strs[2]);
+
+
+
+/*need to reverse the stmt list?*/
+/*printBool(foo(());/*
 /* Things to consider:
 int a[5];
 int[] foo() {

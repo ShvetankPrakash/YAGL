@@ -196,7 +196,7 @@ let check_function func =
        | Access (s, e) -> 
          let elem_typ = type_of_identifier s in 
          ( match elem_typ  with 
-             Array(t, e) -> (t, SAccess(s, expr e))
+             Array(t, _) -> (t, SAccess(s, expr e))
            | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
          )
        | Noexpr -> (Void, SNoexpr) 
