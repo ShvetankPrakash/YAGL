@@ -28,7 +28,7 @@ let translate functions =
 
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
-  and float_t    = L.float_type  context
+  and float_t    = L.double_type  context
   and i8_t       = L.i8_type     context
   and void_t     = L.void_type   context in
 
@@ -109,7 +109,7 @@ let translate functions =
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
 	      SLiteral i  -> L.const_int i32_t i
-      | SFLit f -> L.const_float float_t f
+      | SFLit f -> L.const_float_of_string float_t f
       | SId s       -> L.build_load (lookup s) s builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SCall ("printInt", [e]) | SCall ("printb", [e]) ->
@@ -123,9 +123,6 @@ let translate functions =
 	    "printf" builder
       | SCall ("printbig", [e]) ->
 	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
-      | SCall ("printf", [e]) -> 
-	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
-	    "printf" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in

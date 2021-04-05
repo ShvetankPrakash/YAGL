@@ -12,7 +12,7 @@ type bind = typ * string
 
 type expr =
     Literal of int
-  | FLit of float
+  | FLit of string
   | BoolLit of bool
   | StrLit of string
   | Id of string
@@ -66,7 +66,7 @@ let string_of_uop = function
 
 let rec string_of_expr = function
     Literal(l) -> string_of_int l
-  | FLit(f) -> string_of_float f
+  | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | StrLit(str) -> str

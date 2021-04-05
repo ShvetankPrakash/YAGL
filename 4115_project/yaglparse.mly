@@ -10,11 +10,10 @@ open Ast
 %token NOT EQ NEQ LT LEQ GT GEQ AND OR
 %token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
-%token <float> FLIT
 %token <bool> BLIT
 %token <char> CHRLIT
 %token <string> STRLIT
-%token <string> ID /* FLIT Note: not sure what "FLIT" was referring to here */
+%token <string> ID FLIT
 %token EOF
 
 %start program
