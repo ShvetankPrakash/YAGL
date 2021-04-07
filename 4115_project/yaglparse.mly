@@ -76,6 +76,9 @@ formal_list:
 vdecl:
      typ ID SEMI { ($1, $2) } 
 
+attr:
+     ID DOT ID { ($1, $3) }
+
 /*
 Add variable assignment in same stmt
 vdecl:

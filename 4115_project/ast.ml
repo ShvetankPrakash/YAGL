@@ -5,7 +5,7 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
 
 type uop = Neg | Not
 
-type typ = Void | Int | String | Float | Bool
+type typ = Void | Int | String | Float | Bool | Attr
 
 type bind = typ * string
 
@@ -20,6 +20,7 @@ type expr =
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
+  | Attr of string * string
   | Noexpr
 
 type stmt =
@@ -71,6 +72,7 @@ let rec string_of_expr = function
   | BoolLit(false) -> "false"
   | StrLit(str) -> str
   | Id(s) -> s
+  | Attr(s, a) -> s ^ "." ^ a
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e

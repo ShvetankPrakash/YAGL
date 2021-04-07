@@ -160,6 +160,7 @@ let check_function func =
        | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
+       | Attr(s, a) -> (Attr, SAttr(s, a))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 
           and (t2, e2') = expr e2 in
