@@ -23,6 +23,7 @@ type sstmt =
   | SBfs of sexpr * sexpr * sexpr * sstmt
   | SWhile of sexpr * sstmt
   | SBinding of bind  
+  | SBinding_Assign of bind * sexpr
   | SReturn of sexpr 
 
 type sfunc_decl = {
@@ -71,6 +72,8 @@ let rec string_of_sstmt = function
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
   | SBinding(t, id) -> "(" ^ string_of_typ t ^ " : " ^ id ^ ");\n"
+  | SBinding_Assign((t, id), e) -> 
+        string_of_typ t ^ " " ^ id ^ " = " ^ string_of_sexpr e ^ ";\n"
   | SReturn(e) -> "return " ^ string_of_sexpr e ^ ";\n" 
 
 let string_of_sfdecl fdecl =

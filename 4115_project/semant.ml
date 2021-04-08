@@ -31,6 +31,7 @@ let check (stmts, funcs) =
     List.fold_left (fun bind_list stmt -> 
       match stmt with
         Binding b -> b :: bind_list
+      | Binding_Assign (b, x) -> b :: bind_list
       | _ -> bind_list 
     ) [] stmts
 
@@ -257,6 +258,8 @@ let check_function func =
             | []              -> []
           in SBlock(check_stmt_list sl)
       | Binding (typ, id) -> SBinding (typ, id)
+      | Binding_Assign ((typ, id), e) -> 
+                      SBinding_Assign ((typ, id), expr e);
       | _ -> raise (Failure "fail ???")
   in 
 
