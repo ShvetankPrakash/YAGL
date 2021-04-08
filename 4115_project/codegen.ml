@@ -28,18 +28,26 @@ let translate functions =
 
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
-  and float_t    = L.float_type  context
+  and float_t    = L.double_type  context
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
+  and i64_t      = L.i64_type    context
   and void_t     = L.void_type   context in
 
   (* Return the LLVM type for a YAGL type *)
-  let ltype_of_typ = function
-      A.Int   -> i32_t
-    | A.Float -> float_t  
-    | A.String -> L.pointer_type i8_t
-    | A.Void   -> void_t
-    | A.Bool   -> i1_t 
+  let rec ltype_of_typ = function
+      A.Int          -> i32_t
+    | A.Float        -> float_t  
+    | A.String       -> L.pointer_type i8_t
+    | A.Void         -> void_t
+    | A.Bool         -> i1_t 
+    | A.Array (t, e) -> let num =(match e with
+                           Literal(l) -> l
+                         | Binop(_, _, _) -> raise(Failure("TODO"))
+                         | Id s  -> raise(Failure("TODO"))
+                         | _ -> raise(Failure("TODO"))
+                        )
+                        in L.array_type (ltype_of_typ t)  num
   in
 
   (* Declare built-in functions *)
@@ -112,9 +120,9 @@ let translate functions =
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
 	      SLiteral i  -> L.const_int i32_t i
-      | SFLit f -> L.const_float float_t f
+      | SFLit f -> L.const_float_of_string float_t f
       | SId s       -> L.build_load (lookup s) s builder
-      (*| SBinop ((A.Float,_ ) as e1, op, e2) ->
+      | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
 	  (match op with 
@@ -128,7 +136,6 @@ let translate functions =
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
-          *)
       | SBinop (((A.String,_ )) as x, op, x2) ->
           (match x, op, x2 with 
              (a, SStrLit(b)), A.Add, (c, SStrLit(d)) ->
@@ -151,8 +158,21 @@ let translate functions =
 	  ) e1' e2' "tmp" builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-      | SAssign (s, e) -> let e' = expr builder e in
-                          ignore(L.build_store e' (lookup s) builder); e'
+      | SAssign (s, e1, e2) -> (match e2 with 
+                               (_, SNoexpr) -> (let e' = expr builder e1 in 
+                                                ignore(L.build_store e' (lookup s) builder); e')
+                               | _ -> let e' = expr builder e2 in 
+                                      let index = (match e1 with (* expr builder e in *)
+                                         (Int, e)          -> expr builder e1
+                                     (*| (Int, SLiteral l) -> L.const_int i64_t l May want to keep? *)
+                                       | _                 -> raise(Failure("Semant.ml should have caught."))
+                                      ) in
+                                      let indices = 
+                                        (Array.of_list [L.const_int i64_t 0; index]) in 
+                                      let ptr =  
+                                        L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
+                                      in L.build_store e' ptr builder
+                               )
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
@@ -165,8 +185,8 @@ let translate functions =
       | SCall ("printbig", [e]) ->
 	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
       | SCall ("printf", [e]) -> 
-	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
-	    "printf" builder
+    L.build_call printf_func [| float_format_str ; (expr builder e) |]
+      "printf" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
 	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
@@ -174,6 +194,16 @@ let translate functions =
                         A.Void -> ""
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
+      | SAccess (s, e) -> let index = (match e with (* expr builder e in *)
+                             (Int, e')          -> expr builder e
+                         (*| (Int, SLiteral l) -> L.const_int i64_t l  We might want to check this? *)
+                           | _                 -> raise(Failure("This should have been caught by semant.ml"))
+                          ) in
+                          let indices = 
+                            (Array.of_list [L.const_int i64_t 0; index]) in 
+                          let ptr =  
+                            L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
+                          in L.build_load ptr (s^"_elem_") builder
       | _ -> raise (Failure("Only support Call and Integer Expressions currently.")) 
     in
     
@@ -200,6 +230,36 @@ let translate functions =
                 (* Build return statement *)
                 | _ -> L.build_ret (expr builder e) builder );
             builder
+      | SIf (predicate, then_stmt, else_stmt) ->
+         let bool_val = expr builder predicate in
+	 let merge_bb = L.append_block context "merge" the_function in
+         let build_br_merge = L.build_br merge_bb in (* partial function *)
+
+	 let then_bb = L.append_block context "then" the_function in
+	 add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+	   build_br_merge;
+
+	 let else_bb = L.append_block context "else" the_function in
+	 add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+	   build_br_merge;
+
+	 ignore(L.build_cond_br bool_val then_bb else_bb builder);
+	 L.builder_at_end context merge_bb
+      | SWhile (predicate, body) ->
+	  let pred_bb = L.append_block context "while" the_function in
+	  ignore(L.build_br pred_bb builder);
+
+	  let body_bb = L.append_block context "while_body" the_function in
+	  add_terminal (stmt (L.builder_at_end context body_bb) body)
+	    (L.build_br pred_bb);
+
+	  let pred_builder = L.builder_at_end context pred_bb in
+	  let bool_val = expr pred_builder predicate in
+
+	  let merge_bb = L.append_block context "merge" the_function in
+	  ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
+	  L.builder_at_end context merge_bb
+
 
       | _ -> raise (Failure("Only support expression statements currently."))
 
