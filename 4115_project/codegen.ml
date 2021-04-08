@@ -36,11 +36,11 @@ let translate functions =
 
   (* Return the LLVM type for a YAGL type *)
   let rec ltype_of_typ = function
-      A.Int   -> i32_t
-    | A.Float -> float_t  
-    | A.String -> L.pointer_type i8_t
-    | A.Void   -> void_t
-    | A.Bool   -> i1_t 
+      A.Int          -> i32_t
+    | A.Float        -> float_t  
+    | A.String       -> L.pointer_type i8_t
+    | A.Void         -> void_t
+    | A.Bool         -> i1_t 
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
@@ -157,14 +157,14 @@ let translate functions =
                                                 ignore(L.build_store e' (lookup s) builder); e')
                                | _ -> let e' = expr builder e2 in 
                                       let index = (match e1 with (* expr builder e in *)
-                                         (Int, SLiteral l) -> l
-                                       | _                 -> raise(Failure("TODO"))
+                                         (Int, e)          -> expr builder e1
+                                     (*| (Int, SLiteral l) -> L.const_int i64_t l May want to keep? *)
+                                       | _                 -> raise(Failure("Semant.ml should have caught."))
                                       ) in
                                       let indices = 
-                                        (Array.of_list [L.const_int i64_t 0; L.const_int i64_t index]) in 
+                                        (Array.of_list [L.const_int i64_t 0; index]) in 
                                       let ptr =  
-                                        L.build_in_bounds_gep (lookup s) indices 
-                                          (s^"_ptr_"^string_of_int index) builder
+                                        L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
                                       in L.build_store e' ptr builder
                                )
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
@@ -189,14 +189,15 @@ let translate functions =
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
       | SAccess (s, e) -> let index = (match e with (* expr builder e in *)
-                             (Int, SLiteral l) -> l
-                           | _         -> raise(Failure("TODO"))
+                             (Int, e')          -> expr builder e
+                         (*| (Int, SLiteral l) -> L.const_int i64_t l  We might want to check this? *)
+                           | _                 -> raise(Failure("This should have been caught by semant.ml"))
                           ) in
                           let indices = 
-                            (Array.of_list [L.const_int i64_t 0; L.const_int i64_t index]) in 
+                            (Array.of_list [L.const_int i64_t 0; index]) in 
                           let ptr =  
-                            L.build_in_bounds_gep (lookup s) indices (s^"_ptr_"^string_of_int index) builder
-                          in L.build_load ptr (s^"_elem_"^ string_of_int index) builder
+                            L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
+                          in L.build_load ptr (s^"_elem_") builder
       | _ -> raise (Failure("Only support Call and Integer Expressions currently.")) 
     in
     

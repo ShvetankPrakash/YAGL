@@ -1,2 +1,1 @@
 int[true] a; /* Invalid expr to have in braces */
-index out of bounds include too

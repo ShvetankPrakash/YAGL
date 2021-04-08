@@ -55,9 +55,10 @@ let check (stmts, funcs) =
   in
 
   (* Verify a list of bindings has no void types or duplicate names *)
+  (* Verify also that size of array is type int *)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
-  (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
+        (Void, b)        -> raise(Failure ("illegal void " ^ kind ^ " " ^ b))
       | _ -> ()) binds;
     let rec dups = function
         [] -> ()
@@ -137,6 +138,23 @@ let check_function func =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
+    (* Check array sizes are all of type int *)
+    let check_arrays (kind : string) (binds : bind list) =
+       List.iter (function
+           (Array(_, e), id) -> let rec is_int e' = match e' with 
+                                 Literal(_)        -> true
+                               | Binop(e1, op, e2) -> if (is_int e1) && (is_int e2) then true else false
+                               | Id(s)             -> let typ = type_of_identifier s in 
+                                                                (match typ with 
+                                                                  Int -> true
+                                                                | _   -> false) 
+                               | _                 -> false
+                               in let found_int = is_int e
+                               in if found_int then () else raise(Failure("Size of array is not of type int."))
+         | _ -> ()) binds;
+    in check_arrays "formals" func.formals; check_arrays "locals" (extract_vdecls func.body);
+
+
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
          Call(fname, args) as call -> 
@@ -196,7 +214,11 @@ let check_function func =
        | Access (s, e) -> 
          let elem_typ = type_of_identifier s in 
          ( match elem_typ  with 
-             Array(t, _) -> (t, SAccess(s, expr e))
+             Array(t, _) -> let e' = expr e in 
+                                     (match e' with 
+                                       (Int, _) -> (t, SAccess(s, e'))
+                                     | (_, _)   -> raise(Failure("Can only access array element with int type."))
+                                     )
            | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
          )
        | Noexpr -> (Void, SNoexpr) 
