@@ -76,9 +76,6 @@ formal_list:
 vdecl:
      typ ID SEMI { ($1, $2) } 
 
-attr:
-     ID DOT ID { ($1, $3) }
-
 /*
 Add variable assignment in same stmt
 vdecl:
@@ -127,7 +124,7 @@ expr:
   | NOT expr         { Unop(Not, $2)          }
   | ID ASSIGN expr   { Assign($1, $3)         }
   | ID COLON expr QMARK expr { Noexpr         }
-  | ID DOT ID        { Noexpr                 }
+  | ID DOT ID        { Attr($1, $3)           } 
   | ID LBRAC expr RBRAC { Noexpr              }
   | LPAREN expr RPAREN { $2                   }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }  

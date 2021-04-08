@@ -2,7 +2,9 @@ float a;
 
 int printHello() {
   
-  String hello = "Hello World";
+  String hello;
+
+  hello = "Hello World";
 
   printString(hello);
   printInt(hello.length);

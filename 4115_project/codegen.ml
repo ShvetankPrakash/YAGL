@@ -120,7 +120,7 @@ let translate functions =
       | SFLit f -> L.const_float float_t f
       | SId s   -> L.build_load (lookup s) s builder
       | SAttr (s, "length") -> 
-    L.build_call strlen_func [| L.build_load (lookup s) s builder |] "strlen" builder
+    L.build_call strlen_func [| (expr builder s) |] "strlen" builder
       (*| SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in

@@ -137,6 +137,10 @@ let check_function func =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
+    let type_of_attribute a = match a with
+      "length" -> Int
+    in
+
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
          Call(fname, args) as call -> 
@@ -160,7 +164,7 @@ let check_function func =
        | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
-       | Attr(s, a) -> (Attr, SAttr(s, a))
+       | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 
           and (t2, e2') = expr e2 in
