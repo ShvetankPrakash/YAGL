@@ -138,11 +138,17 @@ let translate functions =
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
       | SBinop (((A.String,_ )) as x, op, x2) ->
-          (match x, op, x2 with 
-             (a, SStrLit(b)), A.Add, (c, SStrLit(d)) ->
-                L.build_global_stringptr (b ^ d) "fmt" builder
-             | _ ->  raise (Failure ("Can only concatenate strings (+ operator)."))
-          )
+          let e1 = (match x with
+                     (a, SStrLit(b)) -> b
+                   (*| (a, SId(b)) -> L.string_of_llvalue (lookup b)*)
+                   | _ -> raise (Failure "internal error: can't find value for string concatentation")
+                )
+           and e2 = (match x2 with
+                     (a, SStrLit(b)) -> b
+                   (*| (a, SId(b)) -> "foo" (*lookup b*)*)
+                   | _ -> raise (Failure "internal error: can't find value for string concatentation")
+                ) in
+           L.build_global_stringptr (e1 ^ e2) "fmt" builder
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
