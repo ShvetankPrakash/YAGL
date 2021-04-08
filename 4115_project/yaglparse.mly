@@ -86,7 +86,7 @@ stmt:
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
   | typ ID SEMI                             { Binding($1, $2)       }
-  | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4)) }
+  | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4,Noexpr)) }
 
 expr_opt: /* can be expr or nothing */
         /* epsilon/nothing */   { Noexpr }

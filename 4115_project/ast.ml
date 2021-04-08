@@ -5,10 +5,6 @@ type op = Add | Sub | Mult | Div | Equal | Less | Greater |
 
 type uop = Neg | Not
 
-type typ = Void | Int | String | Float | Bool
-
-type bind = typ * string
-
 type expr =
     Literal of int
   | FLit of string
@@ -119,7 +115,7 @@ let rec string_of_stmt = function
   | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n" 
   | Binding_Assign((t, id), e) -> 
         match e with
-                Assign(_, e') -> string_of_typ t ^ " " ^ id ^ " = " ^ string_of_expr e' ^ ";\n"
+                Assign(_, e',_) -> string_of_typ t ^ " " ^ id ^ " = " ^ string_of_expr e' ^ ";\n"
                 | _           -> string_of_typ t ^ " " ^ id ^ " = " ^ string_of_expr e  ^ ";\n"
 
 let string_of_fdecl fdecl =
