@@ -51,12 +51,12 @@ typ:
   | STRING { String }
   | VOID   { Void   }
   | BOOL   { Bool   }
+  | typ LBRAC expr RBRAC { Array($1, $3) }
 /*
   | CHAR   { Void   }
   | NODE   { Void   }
   | GRAPH  { Void   }
   | EDGE   { Void   }
-  | typ LBRAC expr RBRAC { Void }
 */
 fdecl:
    typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
@@ -74,7 +74,7 @@ formal_list:
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
 vdecl:
-     typ ID SEMI { ($1, $2) } 
+    typ ID SEMI { ($1, $2) }
 
 /*
 Add variable assignment in same stmt
@@ -105,29 +105,30 @@ expr_opt: /* can be expr or nothing */
 
 
 expr:
-    LITERAL          { Literal($1)            }
-  | FLIT             { FLit($1)               }
-  | BLIT             { BoolLit($1)            }
-  | CHRLIT           { Noexpr                 }
-  | STRLIT           { StrLit($1)             }
-  | ID               { Id($1)                 }
-  | expr PLUS   expr { Binop($1, Add,   $3)   }
-  | expr MINUS  expr { Binop($1, Sub,   $3)   }
-  | expr TIMES  expr { Binop($1, Mult,  $3)   }
-  | expr DIVIDE expr { Binop($1, Div,   $3)   }
-  | expr EQ     expr { Binop($1, Equal, $3)   }
-  | expr LT     expr { Binop($1, Less,  $3)   }
-  | expr GT     expr { Binop($1, Greater, $3) }
-  | expr AND    expr { Binop($1, And,   $3)   }
-  | expr OR     expr { Binop($1, Or,    $3)   }
-  | MINUS expr %prec NOT { Unop(Neg, $2)      }
-  | NOT expr         { Unop(Not, $2)          }
-  | ID ASSIGN expr   { Assign($1, $3)         }
-  | ID COLON expr QMARK expr { Noexpr         }
-  | ID DOT ID        { Noexpr                 }
-  | ID LBRAC expr RBRAC { Noexpr              }
-  | LPAREN expr RPAREN { $2                   }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)  }  
+    LITERAL          { Literal($1)                       }
+  | FLIT             { FLit($1)                          }
+  | BLIT             { BoolLit($1)                       }
+  | CHRLIT           { Noexpr                            }
+  | STRLIT           { StrLit($1)                        }
+  | ID               { Id($1)                            }
+  | expr PLUS   expr { Binop($1, Add,   $3)              }
+  | expr MINUS  expr { Binop($1, Sub,   $3)              }
+  | expr TIMES  expr { Binop($1, Mult,  $3)              }
+  | expr DIVIDE expr { Binop($1, Div,   $3)              }
+  | expr EQ     expr { Binop($1, Equal, $3)              }
+  | expr LT     expr { Binop($1, Less,  $3)              }
+  | expr GT     expr { Binop($1, Greater, $3)            }
+  | expr AND    expr { Binop($1, And,   $3)              }
+  | expr OR     expr { Binop($1, Or,    $3)              }
+  | MINUS expr %prec NOT { Unop(Neg, $2)                 }
+  | NOT expr         { Unop(Not, $2)                     }
+  | ID ASSIGN expr   { Assign($1, $3, Noexpr)            }
+  | ID LBRAC expr RBRAC ASSIGN expr { Assign($1, $3, $6) }
+  | ID COLON expr QMARK expr { Noexpr                    }
+  | ID DOT ID        { Noexpr                            }
+  | ID LBRAC expr RBRAC { Access($1, $3)                 }
+  | LPAREN expr RPAREN { $2                              }
+  | ID LPAREN args_opt RPAREN { Call($1, $3)             }  
 
 args_opt:
     /* nothing */ { [] }

@@ -11,8 +11,9 @@ and sx =
   | SId of string
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
-  | SAssign of string * sexpr
+  | SAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
+  | SAccess of string * sexpr
   | SNoexpr
 
 type sstmt =
@@ -46,9 +47,14 @@ let rec string_of_sexpr (t, e) =
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
-  | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
+  | SAssign(v, e1, e2) -> 
+      (match e2 with 
+          (Void, SNoexpr) -> v ^ " = " ^ string_of_sexpr e1
+        | _ -> v ^ "[" ^ string_of_sexpr e1 ^ "]" ^ " = " ^ string_of_sexpr e2 
+      )
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
+  | SAccess(id, e) -> id ^ "[" ^ string_of_sexpr e ^ "]"
   | SNoexpr -> ""
 				  ) ^ ")"				     
 

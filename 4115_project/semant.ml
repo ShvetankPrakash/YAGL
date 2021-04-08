@@ -55,9 +55,10 @@ let check (stmts, funcs) =
   in
 
   (* Verify a list of bindings has no void types or duplicate names *)
+  (* Verify also that size of array is type int *)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
-  (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
+        (Void, b)        -> raise(Failure ("illegal void " ^ kind ^ " " ^ b))
       | _ -> ()) binds;
     let rec dups = function
         [] -> ()
@@ -137,6 +138,23 @@ let check_function func =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
+    (* Check array sizes are all of type int *)
+    let check_arrays (kind : string) (binds : bind list) =
+       List.iter (function
+           (Array(_, e), id) -> let rec is_int e' = match e' with 
+                                 Literal(_)        -> true
+                               | Binop(e1, op, e2) -> if (is_int e1) && (is_int e2) then true else false
+                               | Id(s)             -> let typ = type_of_identifier s in 
+                                                                (match typ with 
+                                                                  Int -> true
+                                                                | _   -> false) 
+                               | _                 -> false
+                               in let found_int = is_int e
+                               in if found_int then () else raise(Failure("Size of array is not of type int."))
+         | _ -> ()) binds;
+    in check_arrays "formals" func.formals; check_arrays "locals" (extract_vdecls func.body);
+
+
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
          Call(fname, args) as call -> 
@@ -179,16 +197,33 @@ let check_function func =
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))       
-        | Assign(var, e) as ex -> 
-          let lt = type_of_identifier var
-          and (rt, e') = expr e in
-          let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
-            string_of_typ rt ^ " in " ^ string_of_expr ex
-          in (check_assign lt rt err, SAssign(var, (rt, e')))
+        | Assign(var, e1, e2) as ex -> 
+          let (rvalue, lt) = match e2 with 
+              Noexpr -> (e1, type_of_identifier var)
+            | _      -> let elem_typ = type_of_identifier var in 
+                        ( match elem_typ  with 
+                            Array(t, e) -> (e2, t)
+                          | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+                        )
+          in
+            let (rt, e') = expr rvalue in
+            let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
+              string_of_typ rt ^ " in " ^ string_of_expr ex
+            in (check_assign lt rt err, SAssign(var, expr e1, expr e2))
        | BoolLit b -> (Bool, SBoolLit b)
+       | Access (s, e) -> 
+         let elem_typ = type_of_identifier s in 
+         ( match elem_typ  with 
+             Array(t, _) -> let e' = expr e in 
+                                     (match e' with 
+                                       (Int, _) -> (t, SAccess(s, e'))
+                                     | (_, _)   -> raise(Failure("Can only access array element with int type."))
+                                     )
+           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+         )
+       | Noexpr -> (Void, SNoexpr) 
        (* Exprs still to implement below *) 
        | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-       | Noexpr -> raise (Failure("Noexpr ERROR"))
        | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
     in 
 
