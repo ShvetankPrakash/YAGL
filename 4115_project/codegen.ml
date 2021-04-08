@@ -122,7 +122,7 @@ let translate functions =
 	      SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
       | SId s       -> L.build_load (lookup s) s builder
-      (*| SBinop ((A.Float,_ ) as e1, op, e2) ->
+      | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
 	  (match op with 
@@ -135,7 +135,7 @@ let translate functions =
 	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
-	  ) e1' e2' "tmp" builder*)
+	  ) e1' e2' "tmp" builder
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
@@ -224,6 +224,36 @@ let translate functions =
                 (* Build return statement *)
                 | _ -> L.build_ret (expr builder e) builder );
             builder
+      | SIf (predicate, then_stmt, else_stmt) ->
+         let bool_val = expr builder predicate in
+	 let merge_bb = L.append_block context "merge" the_function in
+         let build_br_merge = L.build_br merge_bb in (* partial function *)
+
+	 let then_bb = L.append_block context "then" the_function in
+	 add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+	   build_br_merge;
+
+	 let else_bb = L.append_block context "else" the_function in
+	 add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+	   build_br_merge;
+
+	 ignore(L.build_cond_br bool_val then_bb else_bb builder);
+	 L.builder_at_end context merge_bb
+      | SWhile (predicate, body) ->
+	  let pred_bb = L.append_block context "while" the_function in
+	  ignore(L.build_br pred_bb builder);
+
+	  let body_bb = L.append_block context "while_body" the_function in
+	  add_terminal (stmt (L.builder_at_end context body_bb) body)
+	    (L.build_br pred_bb);
+
+	  let pred_builder = L.builder_at_end context pred_bb in
+	  let bool_val = expr pred_builder predicate in
+
+	  let merge_bb = L.append_block context "merge" the_function in
+	  ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
+	  L.builder_at_end context merge_bb
+
 
       | _ -> raise (Failure("Only support expression statements currently."))
 
