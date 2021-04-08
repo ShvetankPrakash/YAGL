@@ -5,11 +5,6 @@ type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
 
 type uop = Neg | Not
 
-type typ = Void | Int | String | Float
-
-type bind = typ * string
-
-
 type expr =
     Literal of int
   | FLit of string
@@ -18,9 +13,14 @@ type expr =
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Assign of string * expr
+  | Assign of string * expr * expr
   | Call of string * expr list
+  | Access of string * expr
   | Noexpr
+
+type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
+
+type bind = typ * string
 
 type stmt =
     Block of stmt list
@@ -74,9 +74,14 @@ let rec string_of_expr = function
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-  | Assign(v, e) -> v ^ " = " ^ string_of_expr e
+  | Assign(v, e1, e2) -> 
+      (match e2 with 
+         Noexpr -> v ^ " = " ^ string_of_expr e1
+       | _ -> v ^ "[" ^ string_of_expr e1 ^ "]" ^ " = " ^ string_of_expr e2 
+      )
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | Access(id, e) -> id ^ "[" ^ string_of_expr e ^ "]"
   | Noexpr -> ""
   (*
   | EdgeOp(e1, e2, o, e3, e4) -> string_of_expr e1 ^ " "
@@ -89,11 +94,13 @@ let rec string_of_expr = function
     ^ e2 ^ ")"
   *)
 
-let string_of_typ = function
-    Void -> "void"
-  | Int -> "int"
-  | Float -> "float"
-  | String -> "String"
+let rec string_of_typ = function
+    Void        -> "void"
+  | Int         -> "int"
+  | Float       -> "float"
+  | String      -> "String"
+  | Bool        -> "bool"
+  | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function
     Block(stmts) ->
@@ -107,6 +114,7 @@ let rec string_of_stmt = function
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | Binding(t, id) -> string_of_typ t ^ " " ^ id ^ ";\n"
+  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n" 
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^

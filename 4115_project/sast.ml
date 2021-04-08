@@ -11,8 +11,9 @@ and sx =
   | SId of string
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
-  | SAssign of string * sexpr
+  | SAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
+  | SAccess of string * sexpr
   | SNoexpr
 
 type sstmt =
@@ -22,6 +23,7 @@ type sstmt =
   | SBfs of sexpr * sexpr * sexpr * sstmt
   | SWhile of sexpr * sstmt
   | SBinding of bind  
+  | SReturn of sexpr 
 
 type sfunc_decl = {
     styp : typ;
@@ -45,9 +47,14 @@ let rec string_of_sexpr (t, e) =
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
-  | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
+  | SAssign(v, e1, e2) -> 
+      (match e2 with 
+          (Void, SNoexpr) -> v ^ " = " ^ string_of_sexpr e1
+        | _ -> v ^ "[" ^ string_of_sexpr e1 ^ "]" ^ " = " ^ string_of_sexpr e2 
+      )
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
+  | SAccess(id, e) -> id ^ "[" ^ string_of_sexpr e ^ "]"
   | SNoexpr -> ""
 				  ) ^ ")"				     
 
@@ -64,6 +71,7 @@ let rec string_of_sstmt = function
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
   | SBinding(t, id) -> "(" ^ string_of_typ t ^ " : " ^ id ^ ");\n"
+  | SReturn(e) -> "return " ^ string_of_sexpr e ^ ";\n" 
 
 let string_of_sfdecl fdecl =
   string_of_typ fdecl.styp ^ " " ^
