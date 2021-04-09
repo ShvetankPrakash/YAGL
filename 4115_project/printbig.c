@@ -3,6 +3,8 @@
  */
 
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 /*
  * Font information: one byte per row, 8 rows per character
@@ -47,6 +49,13 @@ static const char font[] = {
   0x00, 0x03, 0x0f, 0x78, 0x78, 0x0f, 0x03, 0x00,
   0x61, 0x71, 0x79, 0x5d, 0x4f, 0x47, 0x43, 0x00
 };
+
+char *sconcat(char *s1, char *s2) {
+	char *s3 = malloc(strlen(s1) + strlen(s2) + 1);
+	strcpy(s3, s1);
+	strcat(s3, s2);
+	return s3;
+}
 
 void printbig(int c)
 {

@@ -61,6 +61,11 @@ let translate functions =
   let printbig_func : L.llvalue =
       L.declare_function "printbig" printbig_t the_module in
 
+  let sconcat_t : L.lltype =
+          L.function_type (L.pointer_type i8_t) [| L.pointer_type i8_t; L.pointer_type i8_t |] in
+  let sconcat_func : L.llvalue =
+      L.declare_function "sconcat" sconcat_t the_module in
+ 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
   let function_decls : (L.llvalue * sfunc_decl) StringMap.t =
@@ -137,7 +142,7 @@ let translate functions =
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
-      | SBinop (((A.String,_ )) as x, op, x2) ->
+      (*| SBinop (((A.String,_ )) as x, op, x2) ->
           let e1 = (match x with
                      (a, SStrLit(b)) -> b
                    (*| (a, SId(b)) -> L.string_of_llvalue (lookup b)*)
@@ -148,7 +153,11 @@ let translate functions =
                    (*| (a, SId(b)) -> "foo" (*lookup b*)*)
                    | _ -> raise (Failure "internal error: can't find value for string concatentation")
                 ) in
-           L.build_global_stringptr (e1 ^ e2) "fmt" builder
+           L.build_global_stringptr (e1 ^ e2) "fmt" builder*)
+      | SBinop (((A.String,_ )) as e, op, e2) ->
+      (*| SCall ("sconcat", [e; e2]) ->*)
+          L.build_call sconcat_func [| (expr builder e); (expr builder e2)  |]
+	    "sconcat" builder
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
