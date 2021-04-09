@@ -31,7 +31,7 @@ let check (stmts, funcs) =
     List.fold_left (fun bind_list stmt -> 
       match stmt with
         Binding b -> b :: bind_list
-      | Binding_Assign (b, x) -> b :: bind_list
+      | Binding_Assign (b, _) -> b :: bind_list
       | _ -> bind_list 
     ) [] stmts
 
@@ -140,11 +140,11 @@ let check_function func =
     in
 
     (* Check array sizes are all of type int *)
-    let check_arrays (kind : string) (binds : bind list) =
+    let check_arrays (_ : string) (binds : bind list) =
        List.iter (function
-           (Array(_, e), id) -> let rec is_int e' = match e' with 
+           (Array(_, e), _) -> let rec is_int e' = match e' with 
                                  Literal(_)        -> true
-                               | Binop(e1, op, e2) -> if (is_int e1) && (is_int e2) then true else false
+                               | Binop(e1, _, e2) -> if (is_int e1) && (is_int e2) then true else false
                                | Id(s)             -> let typ = type_of_identifier s in 
                                                                 (match typ with 
                                                                   Int -> true
@@ -203,11 +203,11 @@ let check_function func =
               Noexpr -> (e1, type_of_identifier var)
             | _      -> let elem_typ = type_of_identifier var in 
                         ( match elem_typ  with 
-                            Array(t, e) -> (e2, t)
+                            Array(t, _) -> (e2, t)
                           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
                         )
           in
-            let (rt, e') = expr rvalue in
+            let (rt, _) = expr rvalue in
             let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
               string_of_typ rt ^ " in " ^ string_of_expr ex
             in (check_assign lt rt err, SAssign(var, expr e1, expr e2))
@@ -224,8 +224,7 @@ let check_function func =
          )
        | Noexpr -> (Void, SNoexpr) 
        (* Exprs still to implement below *) 
-       | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-       | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
+       | Unop (_, _) -> raise (Failure("Unop ERROR")) 
     in
 
     let check_bool_expr e = 
@@ -238,7 +237,7 @@ let check_function func =
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
-      | Bfs(e1, e2, e3, st) -> raise (Failure "fail for")
+      | Bfs(_, _, _, _) -> raise (Failure "fail for")
       | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
                 if t = func.typ then SReturn (t, e')
@@ -260,7 +259,6 @@ let check_function func =
       | Binding (typ, id) -> SBinding (typ, id)
       | Binding_Assign ((typ, id), e) -> 
                       SBinding_Assign ((typ, id), expr e);
-      | _ -> raise (Failure "fail ???")
   in 
 
   { styp = func.typ;

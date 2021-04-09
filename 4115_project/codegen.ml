@@ -44,7 +44,7 @@ let translate functions =
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
-                         | Id s  -> raise(Failure("TODO"))
+                         | Id _  -> raise(Failure("TODO"))
                          | _ -> raise(Failure("TODO"))
                         )
                         in L.array_type (ltype_of_typ t)  num
@@ -106,7 +106,7 @@ let translate functions =
       (fun bind_list stmt -> 
         match stmt with
           SBinding b -> b :: bind_list
-        | SBinding_Assign (b, e) -> b :: bind_list
+        | SBinding_Assign (b, _) -> b :: bind_list
         | _ -> bind_list 
       ) [] fdecl.sbody)
 
@@ -170,7 +170,7 @@ let translate functions =
                                                 ignore(L.build_store e' (lookup s) builder); e')
                                | _ -> let e' = expr builder e2 in 
                                       let index = (match e1 with (* expr builder e in *)
-                                         (Int, e)          -> expr builder e1
+                                         (Int, _)          -> expr builder e1
                                      (*| (Int, SLiteral l) -> L.const_int i64_t l May want to keep? *)
                                        | _                 -> raise(Failure("Semant.ml should have caught."))
                                       ) in
@@ -202,7 +202,7 @@ let translate functions =
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
       | SAccess (s, e) -> let index = (match e with (* expr builder e in *)
-                             (Int, e')          -> expr builder e
+                             (Int, _)          -> expr builder e
                          (*| (Int, SLiteral l) -> L.const_int i64_t l  We might want to check this? *)
                            | _                 -> raise(Failure("This should have been caught by semant.ml"))
                           ) in
@@ -230,8 +230,8 @@ let translate functions =
     let rec stmt builder = function
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
-      | SBinding (typ, id) -> builder
-      | SBinding_Assign ((typ, id), e) -> (expr builder e); builder
+      | SBinding (_, _) -> builder
+      | SBinding_Assign ((_, _), e) -> (expr builder e); builder
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder
