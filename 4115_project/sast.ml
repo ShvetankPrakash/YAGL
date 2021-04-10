@@ -13,6 +13,7 @@ and sx =
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
+  | SAttr of sexpr * string
   | SAccess of string * sexpr
   | SNoexpr
 
@@ -45,6 +46,7 @@ let rec string_of_sexpr (t, e) =
   | SBoolLit(false) -> "false"
   | SStrLit(str) -> str
   | SId(s) -> s
+  | SAttr(sx, a) -> string_of_sexpr sx ^ "." ^ a
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e

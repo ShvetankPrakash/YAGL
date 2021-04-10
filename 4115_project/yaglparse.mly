@@ -113,7 +113,7 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3, Noexpr)            }
   | ID LBRAC expr RBRAC ASSIGN expr { Assign($1, $3, $6) }
   | ID COLON expr QMARK expr { Noexpr                    }
-  | ID DOT ID        { Noexpr                            }
+  | ID DOT ID        { Attr($1, $3)                      } 
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)             }  

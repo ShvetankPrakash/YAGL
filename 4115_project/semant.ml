@@ -138,7 +138,9 @@ let check_function func =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
-
+    let type_of_attribute a = match a with
+      "length" -> Int
+    in
     (* Check array sizes are all of type int *)
     let check_arrays (kind : string) (binds : bind list) =
        List.iter (function
@@ -154,8 +156,6 @@ let check_function func =
                                in if found_int then () else raise(Failure("Size of array is not of type int."))
          | _ -> ()) binds;
     in check_arrays "formals" func.formals; check_arrays "locals" (extract_vdecls func.body);
-
-
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
          Call(fname, args) as call -> 
@@ -179,6 +179,7 @@ let check_function func =
        | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
+       | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 
           and (t2, e2') = expr e2 in

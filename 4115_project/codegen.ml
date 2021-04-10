@@ -60,7 +60,11 @@ let translate functions =
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
   let sconcat_func : L.llvalue =
       L.declare_function "sconcat" sconcat_t the_module in
- 
+  let strlen_t : L.lltype = 
+      L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+  let strlen_func : L.llvalue = 
+      L.declare_function "strlen" strlen_t the_module in    
+
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
   let function_decls : (L.llvalue * sfunc_decl) StringMap.t =
@@ -120,9 +124,11 @@ let translate functions =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
-	      SLiteral i  -> L.const_int i32_t i
+	SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
-      | SId s       -> L.build_load (lookup s) s builder
+      | SId s   -> L.build_load (lookup s) s builder
+      | SAttr (s, "length") -> 
+          L.build_call strlen_func [| (expr builder s) |] "strlen" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
