@@ -125,8 +125,8 @@ let translate functions =
 
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
-	      SLiteral i  -> L.const_int i32_t i
-      | SFLit f -> L.const_float float_t f
+	SLiteral i  -> L.const_int i32_t i
+      | SFLit f -> L.const_float_of_string float_t f
       | SId s   -> L.build_load (lookup s) s builder
       | SAttr (s, "length") -> 
           L.build_call strlen_func [| (expr builder s) |] "strlen" builder
