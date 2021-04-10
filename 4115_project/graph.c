@@ -148,7 +148,8 @@ void print_graph(struct graph *g) {
 	int iter = 1;
 	for (int n = 0; n < g->n_pos; n++)
 		printf("Node (%d): %d%s", g->nodes[n]->id, g->nodes[n]->val,
-				iter++ % 4 == 0 ? "\n": " --- ");
+				iter++ % 4 == 0 ? "\n": 
+				n == g->n_pos - 1 ? "" : " --- ");
 	printf("\n");
 	for (int n = 0; n < g->e_pos; n++) {
 		struct edge_list *e = g->edges[n];
