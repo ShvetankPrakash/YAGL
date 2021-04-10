@@ -55,12 +55,11 @@ let translate functions =
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
-
-  let printbig_t : L.lltype =
-      L.function_type i32_t [| i32_t |] in
-  let printbig_func : L.llvalue =
-      L.declare_function "printbig" printbig_t the_module in
-
+  let sconcat_t : L.lltype =
+          L.function_type (L.pointer_type i8_t) 
+          [| L.pointer_type i8_t; L.pointer_type i8_t |] in
+  let sconcat_func : L.llvalue =
+      L.declare_function "sconcat" sconcat_t the_module in
   let strlen_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let strlen_func : L.llvalue = 
@@ -131,31 +130,25 @@ let translate functions =
       | SAttr (s, "length") -> 
           L.build_call strlen_func [| (expr builder s) |] "strlen" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
-          let e1' = expr builder e1
-          and e2' = expr builder e2 in
-          (match op with 
-            A.Add     -> L.build_fadd
-          | A.Sub     -> L.build_fsub
-          | A.Mult    -> L.build_fmul
-          | A.Div     -> L.build_fdiv 
-          | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
-          | A.Less    -> L.build_fcmp L.Fcmp.Olt
-          | A.Greater -> L.build_fcmp L.Fcmp.Ogt
-          | A.And | A.Or ->
-              raise (Failure "internal error: semant should have rejected and/or on float")
-          ) e1' e2' "tmp" builder
-      | SBinop (((A.String,_ )) as x, op, x2) ->
-          let e1 = (match x with
-                     (a, SStrLit(b)) -> b
-                   (*| (a, SId(b)) -> L.string_of_llvalue (lookup b)*)
-                   | _ -> raise (Failure "internal error: can't find value for string concatentation")
-                )
-           and e2 = (match x2 with
-                     (a, SStrLit(b)) -> b
-                   (*| (a, SId(b)) -> "foo" (*lookup b*)*)
-                   | _ -> raise (Failure "internal error: can't find value for string concatentation")
-                ) in
-           L.build_global_stringptr (e1 ^ e2) "fmt" builder
+	  let e1' = expr builder e1
+	  and e2' = expr builder e2 in
+	  (match op with 
+	    A.Add     -> L.build_fadd
+	  | A.Sub     -> L.build_fsub
+	  | A.Mult    -> L.build_fmul
+	  | A.Div     -> L.build_fdiv 
+	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
+	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
+	  | A.And | A.Or ->
+	      raise (Failure "internal error: semant should have rejected and/or on float")
+	  ) e1' e2' "tmp" builder
+      | SBinop (((A.String,_ )) as e, op, e2) ->
+          if op == A.Add then
+                L.build_call sconcat_func [| (expr builder e); (expr builder e2)  |]
+	        "sconcat" builder
+          else
+                raise (Failure "internal error: can only concatenate (+) strings")
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
@@ -196,8 +189,6 @@ let translate functions =
       | SCall ("printString", [e]) ->
 	  L.build_call printf_func [| string_format_str ; (expr builder e) |]
 	    "printf" builder
-      | SCall ("printbig", [e]) ->
-	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
       | SCall ("printf", [e]) -> 
     L.build_call printf_func [| float_format_str ; (expr builder e) |]
       "printf" builder
