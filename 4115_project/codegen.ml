@@ -61,6 +61,11 @@ let translate functions =
   let printbig_func : L.llvalue =
       L.declare_function "printbig" printbig_t the_module in
 
+  let strlen_t : L.lltype = 
+      L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
+  let strlen_func : L.llvalue = 
+      L.declare_function "strlen" strlen_t the_module in    
+
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
   let function_decls : (L.llvalue * sfunc_decl) StringMap.t =
@@ -121,22 +126,24 @@ let translate functions =
     (* Construct code for an expression; return its value *)
     let rec expr builder ((_, e) : sexpr) = match e with
 	      SLiteral i  -> L.const_int i32_t i
-      | SFLit f -> L.const_float_of_string float_t f
-      | SId s       -> L.build_load (lookup s) s builder
+      | SFLit f -> L.const_float float_t f
+      | SId s   -> L.build_load (lookup s) s builder
+      | SAttr (s, "length") -> 
+          L.build_call strlen_func [| (expr builder s) |] "strlen" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
-	  (match op with 
-	    A.Add     -> L.build_fadd
-	  | A.Sub     -> L.build_fsub
-	  | A.Mult    -> L.build_fmul
-	  | A.Div     -> L.build_fdiv 
-	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
-	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
-	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
-	  | A.And | A.Or ->
-	      raise (Failure "internal error: semant should have rejected and/or on float")
-	  ) e1' e2' "tmp" builder
+          let e1' = expr builder e1
+          and e2' = expr builder e2 in
+          (match op with 
+            A.Add     -> L.build_fadd
+          | A.Sub     -> L.build_fsub
+          | A.Mult    -> L.build_fmul
+          | A.Div     -> L.build_fdiv 
+          | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
+          | A.Less    -> L.build_fcmp L.Fcmp.Olt
+          | A.Greater -> L.build_fcmp L.Fcmp.Ogt
+          | A.And | A.Or ->
+              raise (Failure "internal error: semant should have rejected and/or on float")
+          ) e1' e2' "tmp" builder
       | SBinop (((A.String,_ )) as x, op, x2) ->
           let e1 = (match x with
                      (a, SStrLit(b)) -> b

@@ -30,6 +30,7 @@ rule token = parse
 | "||"     { OR }
 | "!"      { NOT }
 | ":"      { COLON }
+| "."      { DOT }
 | "->"     { ARROW }
 | "if"     { IF }
 | "else"   { ELSE }
