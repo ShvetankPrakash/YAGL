@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 struct node {
-	int id; // for hash table
+	int id;  // for hash table
 	int val;
 };
 
@@ -36,6 +36,7 @@ void insert_edge(struct graph *g, struct node *from, struct node *to, int v) {
 		printf("Nodes don't exist in given graph.\n");
 		return;
 	}
+
 	// first find where to insert
 	struct edge_list *list;
 	int pos = g->e_pos;
@@ -103,10 +104,10 @@ void insert_node(struct graph *g, struct node *n) {
 		nodes[g->n_pos++] = n;
 	} else {
 		struct graph *g_new = make_graph(g->n_size*2);
-		for (int i =0; i < g->n_size; i++) {
+		for (int i = 0; i < g->n_size; i++) {
 			insert_node(g_new, g->nodes[i]);
 		}
-		memcpy(g, g_new, sizeof(g));
+		memcpy(g, g_new, sizeof(*g));
 		free(g_new);
 		insert_node(g, n);
 	}
@@ -160,13 +161,16 @@ void print_graph(struct graph *g) {
 }
 
 int main() {
+
 	struct graph *g = make_graph(1);
+	struct graph *g2 = make_graph(1);
 
 	struct node *n = make_node(1);
 	struct node *n2 = make_node(10);
 	struct node *n3 = make_node(15);
 
 	insert_node(g,n);
+	insert_node(g2,n);
 	insert_node(g,n2);
 	insert_node(g,n3);
 
@@ -174,6 +178,9 @@ int main() {
 	insert_edge(g, n, n3, 6);
 	insert_edge(g, n2, n, 8);
 	insert_edge(g, n3, n, 8);
+	insert_edge(g2, n, n, 12);
 	
 	print_graph(g);
+	printf("\n\n");
+	print_graph(g2);
 }
