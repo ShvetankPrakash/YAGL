@@ -1,27 +1,27 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
+type op = Add | Sub | Mult | Div | Equal | Less | Greater |
           And | Or (* | Arrow | Colon *)
 
 type uop = Neg | Not
 
-type typ = Void | Int | String | Float | Bool
-
-type bind = typ * string
-
-
 type expr =
     Literal of int
-  | FLit of float
+  | FLit of string
   | BoolLit of bool
   | StrLit of string
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Assign of string * expr
+  | Assign of string * expr * expr
   | Call of string * expr list
   | Attr of string * string
+  | Access of string * expr
   | Noexpr
+
+type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
+
+type bind = typ * string
 
 type stmt =
     Block of stmt list
@@ -30,6 +30,7 @@ type stmt =
   | Bfs of expr * expr * expr * stmt
   | While of expr * stmt
   | Binding of bind      (* Only for vdecls *)
+  | Binding_Assign of bind * expr
   | Return of expr
 
 type func_decl = {
@@ -49,11 +50,8 @@ let string_of_op = function
   | Mult -> "*"
   | Div -> "/"
   | Equal -> "=="
-  | Neq -> "!="
   | Less -> "<"
-  | Leq -> "<="
   | Greater -> ">"
-  | Geq -> ">="
   | And -> "&&"
   | Or -> "||"
   (*
@@ -67,7 +65,7 @@ let string_of_uop = function
 
 let rec string_of_expr = function
     Literal(l) -> string_of_int l
-  | FLit(f) -> string_of_float f
+  | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | StrLit(str) -> str
@@ -76,9 +74,14 @@ let rec string_of_expr = function
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-  | Assign(v, e) -> v ^ " = " ^ string_of_expr e
+  | Assign(v, e1, e2) -> 
+      (match e2 with 
+         Noexpr -> v ^ " = " ^ string_of_expr e1
+       | _ -> v ^ "[" ^ string_of_expr e1 ^ "]" ^ " = " ^ string_of_expr e2 
+      )
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
+  | Access(id, e) -> id ^ "[" ^ string_of_expr e ^ "]"
   | Noexpr -> ""
   (*
   | EdgeOp(e1, e2, o, e3, e4) -> string_of_expr e1 ^ " "
@@ -91,12 +94,13 @@ let rec string_of_expr = function
     ^ e2 ^ ")"
   *)
 
-let string_of_typ = function
-    Void -> "void"
-  | Int -> "int"
-  | Float -> "float"
-  | String -> "String"
-  | Bool   -> "bool"
+let rec string_of_typ = function
+    Void        -> "void"
+  | Int         -> "int"
+  | Float       -> "float"
+  | String      -> "String"
+  | Bool        -> "bool"
+  | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function
     Block(stmts) ->
@@ -111,6 +115,10 @@ let rec string_of_stmt = function
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
   | Binding(t, id) -> string_of_typ t ^ " " ^ id ^ ";\n"
   | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n" 
+  | Binding_Assign((t, id), e) -> 
+        match e with
+                Assign(_, e',_) -> string_of_typ t ^ " " ^ id ^ " = " ^ string_of_expr e' ^ ";\n"
+                | _           -> string_of_typ t ^ " " ^ id ^ " = " ^ string_of_expr e  ^ ";\n"
 
 let string_of_fdecl fdecl =
   string_of_typ fdecl.typ ^ " " ^
