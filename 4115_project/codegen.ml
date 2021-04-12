@@ -62,7 +62,15 @@ struct edge_list {
   let temp_node_t = L.struct_type context [| i32_t; i32_t|] in
   let temp_edge_t = L.struct_type context [| L.pointer_type temp_node_t; L.pointer_type temp_node_t; i32_t|] in
   let temp_edge_list_t = (L.struct_type context [| L.pointer_type temp_edge_t ; i32_t|]) in
-  let graph_t = i32_t in
+        (*
+        %struct.graph = type { i32, i32, i32, %struct.node**, %struct.edge_list** }
+        %struct.edge_list = type { %struct.edge*, %struct.edge_list* }
+        %struct.edge = type { %struct.node*, %struct.node*, i32 }
+        %struct.node = type { i32, i32 }
+        *)
+  let graph_t = L.struct_type context [| i32_t; i32_t; i32_t; 
+                L.pointer_type (L.pointer_type (L.named_struct_type context "temp_node_t")); 
+                L.pointer_type (L.pointer_type (L.named_struct_type context "temp_edge_list_t"))  |] in
   (*let graph_t = L.struct_type context [| i32_t; i32_t; L.pointer_type temp_node_t; L.pointer_type temp_edge_list_t|] in*)
 
   (* Return the LLVM type for a YAGL type *)
@@ -72,7 +80,7 @@ struct edge_list {
     | A.String       -> L.pointer_type i8_t
     | A.Void         -> void_t
     | A.Bool         -> i1_t 
-    | A.Graph        -> graph_t
+    | A.Graph        -> L.pointer_type graph_t
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
@@ -88,13 +96,18 @@ struct edge_list {
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
   let make_graph_t : L.lltype =
-          L.function_type (graph_t)
-          [| i64_t |] in
+          L.function_type (L.pointer_type graph_t)
+          [| i32_t |] in
+  let print_graph_t : L.lltype =
+          L.function_type (L.pointer_type graph_t)
+          [|  |] in
   let sconcat_t : L.lltype =
           L.function_type (L.pointer_type i8_t) 
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
   let make_graph_func : L.llvalue =
       L.declare_function "make_graph" make_graph_t the_module in
+  let print_graph_func : L.llvalue =
+      L.declare_function "print_graph" print_graph_t the_module in
   let sconcat_func : L.llvalue =
       L.declare_function "sconcat" sconcat_t the_module in
   let strlen_t : L.lltype = 
@@ -203,7 +216,7 @@ struct edge_list {
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SGraphLit g -> 
-                  L.build_call make_graph_func [| L.const_int i64_t 1 |]
+                  L.build_call make_graph_func [| L.const_int i32_t 1 |]
                   "make_graph" builder
       | SAssign (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder e1 in 
@@ -221,6 +234,8 @@ struct edge_list {
                                       in L.build_store e' ptr builder
                                )
       
+      | SCall ("printGraph", [g]) ->
+	  L.build_call print_graph_func [| expr builder g |] "print_graph" builder
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder

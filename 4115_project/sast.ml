@@ -45,7 +45,8 @@ let rec string_of_sexpr (t, e) =
   | SFLit(l) -> l
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
-  | SGraphLit(nodes, n, e, _, _)-> "Graph[" ^ string_of_int nodes ^ "," ^ string_of_int n ^ "," ^ string_of_int e ^ "]"
+  | SGraphLit(nodes, n, e, _, _)
+         -> "Graph[" ^ string_of_int nodes ^ "," ^ string_of_int n ^ "," ^ string_of_int e ^ "]"
   | SStrLit(str) -> str
   | SId(s) -> s
   | SAttr(sx, a) -> string_of_sexpr sx ^ "." ^ a

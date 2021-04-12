@@ -86,7 +86,8 @@ stmt:
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
   | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
-                                              Assign($2, GraphLit((0,0,0,(0,0), ((0,0),(0,0)))), Noexpr)) }
+                                              Assign($2, GraphLit(0,0,0,(0,0), ((0,0),(0,0))), Noexpr))
+                                              (*Assign($2, Noexpr, Noexpr))*) }
   | typ ID SEMI                             { Binding($1, $2)       }
   | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4,Noexpr)) }
 

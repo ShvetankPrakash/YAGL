@@ -75,7 +75,8 @@ let rec string_of_expr = function
   | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
-  | GraphLit(nodes, n, e, _, _)-> "Graph[" ^ string_of_int nodes ^ "," ^ string_of_int n ^ "," ^ string_of_int e ^ "]"
+  | GraphLit(nodes, n, e, _, _)
+         -> "Graph[" ^ string_of_int nodes ^ "," ^ string_of_int n ^ "," ^ string_of_int e ^ "]"
   | StrLit(str) -> str
   | Id(s) -> s
   | Attr(s, a) -> s ^ "." ^ a
