@@ -5,12 +5,18 @@ type op = Add | Sub | Mult | Div | Equal | Less | Greater |
 
 type uop = Neg | Not
 
+type node = int * int
+type edge = node * node
+(*type edge_list = Edge of edge * edge_list*)
+type graph = int * int * int * node * edge
+
 type expr =
     Literal of int
   | FLit of string
   | BoolLit of bool
   | StrLit of string
   | Id of string
+  | GraphLit of graph
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr * expr
@@ -20,6 +26,7 @@ type expr =
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
+         | Graph
 
 type bind = typ * string
 
@@ -68,6 +75,7 @@ let rec string_of_expr = function
   | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
+  | GraphLit(nodes, n, e, _, _)-> "Graph[" ^ string_of_int nodes ^ "," ^ string_of_int n ^ "," ^ string_of_int e ^ "]"
   | StrLit(str) -> str
   | Id(s) -> s
   | Attr(s, a) -> s ^ "." ^ a
@@ -100,6 +108,7 @@ let rec string_of_typ = function
   | Float       -> "float"
   | String      -> "String"
   | Bool        -> "bool"
+  | Graph       -> "Graph"
   | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function

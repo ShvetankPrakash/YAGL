@@ -9,6 +9,7 @@ and sx =
   | SBoolLit of bool
   | SStrLit of string
   | SId of string
+  | SGraphLit of graph
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
@@ -44,6 +45,7 @@ let rec string_of_sexpr (t, e) =
   | SFLit(l) -> l
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
+  | SGraphLit(nodes, n, e, _, _)-> "Graph[" ^ string_of_int nodes ^ "," ^ string_of_int n ^ "," ^ string_of_int e ^ "]"
   | SStrLit(str) -> str
   | SId(s) -> s
   | SAttr(sx, a) -> string_of_sexpr sx ^ "." ^ a

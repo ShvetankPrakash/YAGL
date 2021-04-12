@@ -34,6 +34,37 @@ let translate functions =
   and i64_t      = L.i64_type    context
   and void_t     = L.void_type   context in
 
+(*
+struct node {
+	int id;  // for hash table
+	int val;
+};
+
+struct graph {
+	int n_size;
+	int n_pos;
+	int e_pos;
+	struct node **nodes;
+	struct edge_list **edges;
+};
+
+struct edge {
+	struct node *from_node;
+	struct node *to_node;
+	int val;
+};
+
+struct edge_list {
+	struct edge *edge;
+	struct edge_list *next_edge;
+}; *)
+
+  let temp_node_t = L.struct_type context [| i32_t; i32_t|] in
+  let temp_edge_t = L.struct_type context [| L.pointer_type temp_node_t; L.pointer_type temp_node_t; i32_t|] in
+  let temp_edge_list_t = (L.struct_type context [| L.pointer_type temp_edge_t ; i32_t|]) in
+  let graph_t = i32_t in
+  (*let graph_t = L.struct_type context [| i32_t; i32_t; L.pointer_type temp_node_t; L.pointer_type temp_edge_list_t|] in*)
+
   (* Return the LLVM type for a YAGL type *)
   let rec ltype_of_typ = function
       A.Int          -> i32_t
@@ -41,6 +72,7 @@ let translate functions =
     | A.String       -> L.pointer_type i8_t
     | A.Void         -> void_t
     | A.Bool         -> i1_t 
+    | A.Graph        -> graph_t
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
@@ -55,9 +87,14 @@ let translate functions =
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
+  let make_graph_t : L.lltype =
+          L.function_type (graph_t)
+          [| i64_t |] in
   let sconcat_t : L.lltype =
           L.function_type (L.pointer_type i8_t) 
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
+  let make_graph_func : L.llvalue =
+      L.declare_function "make_graph" make_graph_t the_module in
   let sconcat_func : L.llvalue =
       L.declare_function "sconcat" sconcat_t the_module in
   let strlen_t : L.lltype = 
@@ -78,7 +115,7 @@ let translate functions =
   
   (* Fill in the body of the given function *)
   let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.sfname function_decls in
+    let (the_function, _) = StringMap.find fdecl.sfname function_decls in       
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
@@ -165,6 +202,9 @@ let translate functions =
 	  ) e1' e2' "tmp" builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
+      | SGraphLit g -> 
+                  L.build_call make_graph_func [| L.const_int i64_t 1 |]
+                  "make_graph" builder
       | SAssign (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder e1 in 
                                                 ignore(L.build_store e' (lookup s) builder); e')
@@ -180,6 +220,7 @@ let translate functions =
                                         L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
                                       in L.build_store e' ptr builder
                                )
+      
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
@@ -229,7 +270,7 @@ let translate functions =
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
       | SBinding (_, _) -> builder
-      | SBinding_Assign ((_, _), e) -> (expr builder e); builder
+      | SBinding_Assign ((_, _), e) -> (expr builder e); builder; 
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder
