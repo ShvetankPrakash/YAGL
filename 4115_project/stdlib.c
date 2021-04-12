@@ -161,6 +161,8 @@ struct node *make_node(int val) {
 }
 
 void print_graph(struct graph *g) {
+	printf("============== Graph Print ===============\n");
+	printf(" Stats: %d\t%d\t%d", g->n_size, g->n_pos, g->e_pos);
 	int iter = 1;
 	for (int n = 0; n < g->n_pos; n++)
 		printf("Node (%d): %d%s", g->nodes[n]->id, g->nodes[n]->val,
@@ -175,6 +177,7 @@ void print_graph(struct graph *g) {
 			e = e->next_edge;
 		}
 	}
+	printf("============== End Graph Print =============\n");
 }
 
 #ifdef BUILD_TEST

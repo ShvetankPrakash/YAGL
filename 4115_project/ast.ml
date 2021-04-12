@@ -8,7 +8,7 @@ type uop = Neg | Not
 type node = int * int
 type edge = node * node
 (*type edge_list = Edge of edge * edge_list*)
-type graph = int * int * int * node * edge
+(*type graph = int * int * int * node * edge*)
 
 type expr =
     Literal of int
@@ -16,7 +16,7 @@ type expr =
   | BoolLit of bool
   | StrLit of string
   | Id of string
-  | GraphLit of graph
+  | GraphLit of string
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr * expr
@@ -75,8 +75,7 @@ let rec string_of_expr = function
   | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
-  | GraphLit(nodes, n, e, _, _)
-         -> "Graph[" ^ string_of_int nodes ^ "," ^ string_of_int n ^ "," ^ string_of_int e ^ "]"
+  | GraphLit(name) -> name
   | StrLit(str) -> str
   | Id(s) -> s
   | Attr(s, a) -> s ^ "." ^ a

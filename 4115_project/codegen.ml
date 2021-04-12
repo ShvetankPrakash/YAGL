@@ -99,8 +99,7 @@ struct edge_list {
           L.function_type (L.pointer_type graph_t)
           [| i32_t |] in
   let print_graph_t : L.lltype =
-          L.function_type (L.pointer_type graph_t)
-          [|  |] in
+          L.function_type i32_t [| (L.pointer_type graph_t)|] in
   let sconcat_t : L.lltype =
           L.function_type (L.pointer_type i8_t) 
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
