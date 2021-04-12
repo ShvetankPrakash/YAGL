@@ -50,10 +50,10 @@ typ:
   | STRING { String }
   | VOID   { Void   }
   | BOOL   { Bool   }
+  | NODE   { Void   }  
   | typ LBRAC expr RBRAC { Array($1, $3) }
 /*
   | CHAR   { Void   }
-  | NODE   { Void   }
   | GRAPH  { Void   }
   | EDGE   { Void   }
 */

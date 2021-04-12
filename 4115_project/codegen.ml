@@ -26,12 +26,19 @@ let translate functions =
      we will generate code *)
   let the_module = L.create_module context "YAGL" in
 
+  (* Create Node struct type *)
+  let node = [| L.i32_type context;
+                L.pointer_type (L.i8_type context); |] in
+
+  let node_struct = L.struct_type context node in
+
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
   and float_t    = L.double_type context
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and i64_t      = L.i64_type    context
+  and node_t     = L.named_struct_type context "node_struct"
   and void_t     = L.void_type   context in
 
   (* Return the LLVM type for a YAGL type *)
@@ -41,6 +48,7 @@ let translate functions =
     | A.String       -> L.pointer_type i8_t
     | A.Void         -> void_t
     | A.Bool         -> i1_t 
+    | A.Node         -> L.pointer_type node_t
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
@@ -64,6 +72,12 @@ let translate functions =
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let strlen_func : L.llvalue = 
       L.declare_function "strlen" strlen_t the_module in    
+
+  (* Graph related calls *)
+  let make_node_t : L.lltype = 
+      L.var_arg_function_type (L.pointer_type node_t) [| L.pointer_type i8_t |] in
+  let make_node_func : L.llvalue = 
+      L.declare_function "make_node" make_node_t the_module in    
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -127,8 +141,12 @@ let translate functions =
 	SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
       | SId s   -> L.build_load (lookup s) s builder
-      | SAttr (s, "length") -> 
-          L.build_call strlen_func [| (expr builder s) |] "strlen" builder
+      | SAttr ((String, sid), "length") -> 
+            L.build_call strlen_func [| (expr builder (String, sid)) |] "strlen" builder
+      (* | SAttr ((Node, sid), "name") -> *)
+                     
+      | SAttr (_, _) -> 
+            raise (Failure "unsupported attribute type")           
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in

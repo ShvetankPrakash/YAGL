@@ -19,7 +19,7 @@ type expr =
   | Access of string * expr
   | Noexpr
 
-type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
+type typ = Void | Int | String | Float | Bool | Node | Array of typ * expr (* For now only testing ints *)
 
 type bind = typ * string
 
@@ -100,6 +100,7 @@ let rec string_of_typ = function
   | Float       -> "float"
   | String      -> "String"
   | Bool        -> "bool"
+  | Node        -> "Node"
   | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function
