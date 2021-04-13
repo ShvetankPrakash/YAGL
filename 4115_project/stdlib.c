@@ -202,7 +202,7 @@ void copy_graph(struct graph *g, struct graph *g_new) {
 		while (e != NULL && e->edge != NULL) {
 			struct edge *edge = e->edge;
 			e = e->next_edge;
-			insert_edge(g_new, edge->from_node, edge->to_node, edge->val);
+			insert_edge(g_new, edge->from_node, edge->val, edge->to_node);
 		}
 	}
 }
@@ -269,7 +269,7 @@ void print_graph(struct graph *g) {
 	struct node *r2 = make_node("New York City");
 	insert_node(g, r);
 	insert_node(g, r2);
-	insert_edge(g, r, r2, 5);
+	insert_edge(g, r, 5, r2);
 }
 
 #ifdef BUILD_TEST
