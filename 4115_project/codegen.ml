@@ -264,14 +264,7 @@ let translate functions =
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
       | SBinding (_, _) -> builder
-      | SBinding_Assign ((_, _), e) -> (*(match e with
-        (Graph, g) -> 
-                  L.build_call make_graph_func [| L.const_int i32_t 1 |]
-                  "make_graph" builder; builder;
-        | e ->
-                  (expr builder e); builder; 
-      )*)
-      expr builder e; builder;
+      | SBinding_Assign ((_, _), e) -> expr builder e; builder;
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder

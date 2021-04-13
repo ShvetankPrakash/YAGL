@@ -46,6 +46,16 @@ int g_contain_n(struct graph *, struct node *);
 char *node_to_string(struct node *);
 char *edge_to_string(struct edge *);
 
+/* For Jack's testing */
+struct edge *make_edge(struct node *from, struct node *to, int v) {
+
+	struct edge *edge = malloc(sizeof(struct edge));
+	edge->from_node = from;
+	edge->to_node = to;
+	edge->val = v;
+	return edge;
+}
+
 void insert_edge(struct graph *g, struct node *from, struct node *to, int v) {
 	if (!g_contain_n(g, from) || !g_contain_n(g, to)) {
 		printf("Nodes don't exist in given graph.\n");
