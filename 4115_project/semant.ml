@@ -13,7 +13,7 @@ module StringMap = Map.Make(String)
 let check (stmts, funcs) =
   let main = 
      {
-       typ = Void;
+       typ = Int;
        fname = "main"; 
        formals = [];
        body = stmts
@@ -86,7 +86,8 @@ let check (stmts, funcs) =
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String);
                                                  ("printBool", Bool);
-                                                 ("printFloat", Float)
+                                                 ("printFloat", Float);
+                                                 ("printChar", Char)
                                                ]
   in
 
@@ -177,6 +178,7 @@ let check_function func =
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
+       | ChrLit c -> (Char, SChrLit c)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))

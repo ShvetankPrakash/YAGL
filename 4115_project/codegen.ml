@@ -39,6 +39,7 @@ let translate functions =
       A.Int          -> i32_t
     | A.Float        -> float_t  
     | A.String       -> L.pointer_type i8_t
+    | A.Char         -> i8_t
     | A.Void         -> void_t
     | A.Bool         -> i1_t 
     | A.Array (t, e) -> let num =(match e with
@@ -83,7 +84,8 @@ let translate functions =
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
     and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder 
-    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
+    and string_format_str = L.build_global_stringptr "%s\n" "fmt" builder 
+    and char_format_str = L.build_global_stringptr "%c\n" "fmt" builder in
 
     
     (* Construct the function's "locals": formal arguments and locally
@@ -164,6 +166,7 @@ let translate functions =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  ) e1' e2' "tmp" builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
+      | SChrLit  c  -> L.const_int i8_t (Char.code c)
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SAssign (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder e1 in 
@@ -182,6 +185,9 @@ let translate functions =
                                )
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
+	    "printf" builder
+      | SCall ("printChar", [e])  ->
+	  L.build_call printf_func [| char_format_str ; (expr builder e) |]
 	    "printf" builder
       | SCall ("printFloat", [e]) ->
     L.build_call printf_func [| float_format_str ; (expr builder e) |]
