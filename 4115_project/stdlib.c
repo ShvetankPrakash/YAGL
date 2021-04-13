@@ -16,7 +16,7 @@ char *sconcat(char *s1, char *s2) {
 
 struct node {
 	int id;  // for hash table
-	int val;
+	char *val;
 };
 
 struct graph {
@@ -38,6 +38,7 @@ struct edge_list {
 	struct edge_list *next_edge;
 };
 
+void copy_graph(struct graph *, struct graph *);
 void insert_node(struct graph *, struct node*);
 struct edge_list *new_edge_list(struct node *, struct node *, int);
 void insert_into_edge_list(struct edge_list *, struct edge_list *);
@@ -103,10 +104,6 @@ struct graph *make_graph(int n_size) {
 	
 	struct edge_list **edges = malloc(g->n_size * sizeof(struct edge_list *));
 	g->edges = edges;
-	printf("%d\n", n_size);
-	printf("%d\n", n_size);
-	printf("%d\n", n_size);
-	printf("%d\n", n_size);
 	return g;
 }
 
@@ -119,15 +116,27 @@ void insert_node(struct graph *g, struct node *n) {
 		struct node **nodes = g->nodes;
 		nodes[g->n_pos++] = n;
 	} else {
-		struct graph *g_new = make_graph(g->n_size*2);
-		for (int i = 0; i < g->n_size; i++) {
-			insert_node(g_new, g->nodes[i]);
-		}
-		memcpy(g, g_new, sizeof(*g));
-		free(g_new);
-		insert_node(g, n);
+		struct graph *g_new = make_graph(g->n_size*2); // double space
+		copy_graph(g, g_new); // copy values of g to g_new
+		memcpy(g, g_new, sizeof(*g)); // copy g_new to g in memory
+		free(g_new); // clean up space
+		insert_node(g, n); // insert new node
 	}
 	
+}
+
+void copy_graph(struct graph *g, struct graph *g_new) {
+	for (int i = 0; i < g->n_size; i++) {
+		insert_node(g_new, g->nodes[i]);
+	}
+	for (int n = 0; n < g->e_pos; n++) {
+		struct edge_list *e = g->edges[n];
+		while (e != NULL && e->edge != NULL) {
+			struct edge *edge = e->edge;
+			e = e->next_edge;
+			insert_edge(g_new, edge->from_node, edge->to_node, edge->val);
+		}
+	}
 }
 int g_contain_n(struct graph *g, struct node *n) {
 	int on = 0;
@@ -153,7 +162,7 @@ struct edge *g_contain_e(struct graph *g, struct edge *ed) {
 }
 
 static int id = 0;
-struct node *make_node(int val) {
+struct node *make_node(char *val) {
 	struct node *n = malloc(sizeof(struct node));
 	n->id = id++;
 	n->val = val;
@@ -162,22 +171,32 @@ struct node *make_node(int val) {
 
 void print_graph(struct graph *g) {
 	printf("============== Graph Print ===============\n");
-	printf(" Stats: %d\t%d\t%d", g->n_size, g->n_pos, g->e_pos);
+	printf("\tStats: \t%d\t%d\t%d\n", g->n_size, g->n_pos, g->e_pos);
 	int iter = 1;
+	int per_line = 2;
 	for (int n = 0; n < g->n_pos; n++)
-		printf("Node (%d): %d%s", g->nodes[n]->id, g->nodes[n]->val,
-				iter++ % 4 == 0 ? "\n": 
+		printf("Node (%d): %s%s", g->nodes[n]->id, g->nodes[n]->val,
+				iter++ % per_line == 0 ? "\n": 
 				n == g->n_pos - 1 ? "" : " --- ");
 	printf("\n");
 	for (int n = 0; n < g->e_pos; n++) {
 		struct edge_list *e = g->edges[n];
 		while (e != NULL && e->edge != NULL) {
 			struct edge *edge = e->edge;
-			printf("Edge (%d, %d): %d\n", edge->from_node->id, edge->to_node->id, edge->val);
+			printf("Edge ([%d]/%s, [%d]/%s): %d\n", edge->from_node->id, 
+					edge->from_node->val, edge->to_node->id, 
+					edge->to_node->val, edge->val);
 			e = e->next_edge;
 		}
 	}
-	printf("============== End Graph Print =============\n");
+	printf("============ End Graph Print =============\n");
+
+	/* Testing stuff DELETE LATER */
+	struct node *r = make_node("Pittsburgh");
+	struct node *r2 = make_node("New York City");
+	insert_node(g, r);
+	insert_node(g, r2);
+	insert_edge(g, r, r2, 5);
 }
 
 #ifdef BUILD_TEST

@@ -5,11 +5,6 @@ type op = Add | Sub | Mult | Div | Equal | Less | Greater |
 
 type uop = Neg | Not
 
-type node = int * int
-type edge = node * node
-(*type edge_list = Edge of edge * edge_list*)
-(*type graph = int * int * int * node * edge*)
-
 type expr =
     Literal of int
   | FLit of string

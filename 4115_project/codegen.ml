@@ -32,46 +32,26 @@ let translate functions =
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and i64_t      = L.i64_type    context
-  and void_t     = L.void_type   context in
+  and void_t     = L.void_type   context
+  in
 
-(*
-struct node {
-	int id;  // for hash table
-	int val;
-};
+  (* Graph Types *)
+  let node_t     = L.struct_type context 
+                   [| i32_t; 
+                      L.pointer_type i1_t |]
+  and edge_t     = L.struct_type context 
+                   [| L.pointer_type (L.named_struct_type context "node_t");
+                      L.pointer_type (L.named_struct_type context "node_t"); 
+                      i32_t  |]
+  and edge_list_t = L.struct_type context 
+                    [| L.pointer_type (L.named_struct_type context "edge_t"); 
+                       L.pointer_type (L.named_struct_type context "edge_list_t") |]
+  and graph_t = L.struct_type context 
+                [| i32_t; i32_t; i32_t; 
+                   L.pointer_type (L.pointer_type (L.named_struct_type context "node_t")); 
+                   L.pointer_type (L.pointer_type (L.named_struct_type context "edge_list_t"))  |]
+  in
 
-struct graph {
-	int n_size;
-	int n_pos;
-	int e_pos;
-	struct node **nodes;
-	struct edge_list **edges;
-};
-
-struct edge {
-	struct node *from_node;
-	struct node *to_node;
-	int val;
-};
-
-struct edge_list {
-	struct edge *edge;
-	struct edge_list *next_edge;
-}; *)
-
-  let temp_node_t = L.struct_type context [| i32_t; i32_t|] in
-  let temp_edge_t = L.struct_type context [| L.pointer_type temp_node_t; L.pointer_type temp_node_t; i32_t|] in
-  let temp_edge_list_t = (L.struct_type context [| L.pointer_type temp_edge_t ; i32_t|]) in
-        (*
-        %struct.graph = type { i32, i32, i32, %struct.node**, %struct.edge_list** }
-        %struct.edge_list = type { %struct.edge*, %struct.edge_list* }
-        %struct.edge = type { %struct.node*, %struct.node*, i32 }
-        %struct.node = type { i32, i32 }
-        *)
-  let graph_t = L.struct_type context [| i32_t; i32_t; i32_t; 
-                L.pointer_type (L.pointer_type (L.named_struct_type context "temp_node_t")); 
-                L.pointer_type (L.pointer_type (L.named_struct_type context "temp_edge_list_t"))  |] in
-  (*let graph_t = L.struct_type context [| i32_t; i32_t; L.pointer_type temp_node_t; L.pointer_type temp_edge_list_t|] in*)
 
   (* Return the LLVM type for a YAGL type *)
   let rec ltype_of_typ = function
@@ -284,7 +264,14 @@ struct edge_list {
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
       | SBinding (_, _) -> builder
-      | SBinding_Assign ((_, _), e) -> (expr builder e); builder; 
+      | SBinding_Assign ((_, _), e) -> (*(match e with
+        (Graph, g) -> 
+                  L.build_call make_graph_func [| L.const_int i32_t 1 |]
+                  "make_graph" builder; builder;
+        | e ->
+                  (expr builder e); builder; 
+      )*)
+      expr builder e; builder;
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder
