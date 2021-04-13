@@ -13,18 +13,3 @@ printInt(foo[bar]);
 int temp;
 temp = foo[0];
 printInt(temp);
-
-/* TODOs: 
-- check test cases
-- handle only int type being in []
-- handle declaring array type with other exprs
-need to reverse the stmt list?
-printBool(foo(());
-Things to consider:
-int a[5];
-int[bar] a;
-int[3+4] b;
-int[] foo() {
-  Is this allowed?
-
-}*/
