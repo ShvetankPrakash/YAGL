@@ -43,6 +43,8 @@ void insert_node(struct graph *, struct node*);
 struct edge_list *new_edge_list(struct node *, struct node *, int);
 void insert_into_edge_list(struct edge_list *, struct edge_list *);
 int g_contain_n(struct graph *, struct node *);
+char *node_to_string(struct node *);
+char *edge_to_string(struct edge *);
 
 void insert_edge(struct graph *g, struct node *from, struct node *to, int v) {
 	if (!g_contain_n(g, from) || !g_contain_n(g, to)) {
@@ -79,8 +81,18 @@ void insert_edge(struct graph *g, struct node *from, struct node *to, int v) {
 
 void insert_into_edge_list(struct edge_list *e, struct edge_list *new) {
 	struct edge_list *curr = e;
+	if (curr->edge->to_node->id == new->edge->to_node->id) {
+		// update cost
+		curr->edge->val = new->edge->val;
+		return;
+	}
 	while (curr->next_edge) {
 		curr = curr->next_edge;
+		if (curr->edge->to_node->id == new->edge->to_node->id) {
+			// update cost
+			curr->edge->val = new->edge->val;
+			return;
+		}
 	}
 	curr->next_edge = new;
 }
@@ -123,6 +135,52 @@ void insert_node(struct graph *g, struct node *n) {
 		insert_node(g, n); // insert new node
 	}
 	
+}
+char *node_to_string(struct node *n) {
+	int name_length = strlen(n->val);
+	int additional_space_safe = 30;
+	char *s = malloc(additional_space_safe 
+			+ name_length + 1);
+	sprintf(s, "(%d) : %s", n->id, n->val);
+	return s;
+}
+char *edge_to_string(struct edge *e) {
+	char *to = node_to_string(e->to_node);
+	char *from = node_to_string(e->from_node);
+	int val = e->val;
+	int name_length = strlen(to) + strlen(from);
+	int additional_space_safe = 50;
+	char *s = malloc(additional_space_safe 
+			+ name_length + 1);
+	sprintf(s, "[%s] ---(%d)---> [%s]", from, val, to);
+	return s;
+}
+void remove_node(struct graph *g, struct node *n) {
+	if (!g_contain_n(g, n)) {
+		printf("Graph does not contain node %s\n", node_to_string(n));
+		return;
+	}
+
+	// First remove all edges that contain that node
+	// TODO
+	
+	// Second remove node
+	int c = 0;
+	struct node *next;
+	for ( ; c < g->n_pos; c++) {
+		struct node *curr = g->nodes[c];
+		if (curr->id == n->id)
+			break;
+	}
+	while (c + 2 < g->n_pos) {
+		struct node *curr = g->nodes[c];
+		next = g->nodes[c+1];
+		memcpy(curr, next, sizeof(*curr));
+		c++;
+	}
+	struct node *curr = g->nodes[g->n_pos - 1];
+	curr = NULL;
+	g->n_pos--;
 }
 
 void copy_graph(struct graph *g, struct graph *g_new) {
@@ -173,29 +231,30 @@ void print_graph(struct graph *g) {
 	printf("============== Graph Print ===============\n");
 	printf("\tStats: \t%d\t%d\t%d\n", g->n_size, g->n_pos, g->e_pos);
 	int iter = 1;
-	int per_line = 2;
+	int per_line = 3;
+	printf("\nNodes:\n");
 	for (int n = 0; n < g->n_pos; n++)
-		printf("Node (%d): %s%s", g->nodes[n]->id, g->nodes[n]->val,
+		printf("Node %s%s", node_to_string(g->nodes[n]),
 				iter++ % per_line == 0 ? "\n": 
 				n == g->n_pos - 1 ? "" : " --- ");
 	if (g->n_pos == 0)
-		printf("---- No Nodes in Graph ----\n");
-	printf("\n");
+		printf("There aren't any nodes in this graph.\n");
+	printf("\n\n");
+	printf("Edges:\n");
 	for (int n = 0; n < g->e_pos; n++) {
 		struct edge_list *e = g->edges[n];
 		while (e != NULL && e->edge != NULL) {
 			struct edge *edge = e->edge;
-			printf("Edge ([%d]/%s, [%d]/%s): %d\n", edge->from_node->id, 
-					edge->from_node->val, edge->to_node->id, 
-					edge->to_node->val, edge->val);
+			printf("%s\n", edge_to_string(edge));
 			e = e->next_edge;
 		}
 	}
-	if (g->e_pos == 0)
-		printf("---- No Edges in Graph ----\n");
+	if (g->n_pos == 0)
+		printf("There aren't any edges in this graph.\n");
+
 	printf("============ End Graph Print =============\n");
 
-	/* Testing stuff DELETE LATER */
+	/* Testing stuff */
 	struct node *r = make_node("Pittsburgh");
 	struct node *r2 = make_node("New York City");
 	insert_node(g, r);
