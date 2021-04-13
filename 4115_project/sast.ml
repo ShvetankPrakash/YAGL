@@ -61,7 +61,7 @@ let rec string_of_sexpr (t, e) =
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SAccess(id, e) -> id ^ "[" ^ string_of_sexpr e ^ "]"
-  | EdgeOp(e1, e2, o, e3, e4) -> string_of_sexpr e1 ^ ": "
+  | SEdgeOp(e1, e2, o, e3, e4) -> string_of_sexpr e1 ^ ": "
     ^ string_of_sexpr e2 ^ " " ^ string_of_op o ^ "{" 
     ^ string_of_sexpr e3 ^ "} " ^ string_of_sexpr e4
   | SNoexpr -> ""

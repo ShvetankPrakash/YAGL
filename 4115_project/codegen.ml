@@ -168,12 +168,12 @@ let translate functions =
           L.build_call strlen_func [| (expr builder s) |] "strlen" builder
       | SEdgeOp (e1, e2, op, e3, e4) ->
           let e1' = expr builder e1
-          and let e2' = expr builder e2
-          and let e3' = expr builder e3
-          and let e4' = expr builder e4 in
+          and e2' = expr builder e2
+          and e3' = expr builder e3
+          and e4' = expr builder e4 in
           (match op with
             A.Link -> L.build_call
-          ) insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
+          ) insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder 
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in

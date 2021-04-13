@@ -189,7 +189,7 @@ let check_function func =
           and (t3, e3') = expr e3
           and (t4, e4') = expr e4 in
           let ty = match op with
-            Link when t1 = Graph && t2 = Node && t3 = Int && t4 = Node
+            Link when t1 = Graph && t2 = Node && t3 = Int && t4 = Node -> Graph
           | _ -> raise (
 	      Failure ("illegal edge operator " ^
                        string_of_typ t1 ^ ": " ^ string_of_typ t2 ^ " " ^ 

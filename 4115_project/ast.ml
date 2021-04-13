@@ -22,7 +22,7 @@ type expr =
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
-         | Graph | Edge
+         | Graph | Edge | Node
 
 type bind = typ * string
 
@@ -57,6 +57,7 @@ let string_of_op = function
   | Greater -> ">"
   | And -> "&&"
   | Or -> "||"
+  | Link -> "->"
   (*
   | Arrow -> "->"
   | Colon -> ":"

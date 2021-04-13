@@ -118,10 +118,10 @@ expr:
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)             }
-  | ID COLON ID ARROW LBRACE LITERAL RBRACE ID 
-                          { EdgeOp($1, $3, Link, $6, $8) } 
-  | ID COLON ID ARROW ID 
-                          { EdgeOp($1, $3, Link, 1, $5) }
+  | expr COLON expr ARROW LBRACE expr RBRACE expr 
+                          { EdgeOp($1, $3, Link, $6, $8) }
+  /*| expr COLON expr ARROW expr
+                          { EdgeOp($1, $3, Link, 1, $5) }*/
 
 args_opt:
     /* nothing */ { [] }
