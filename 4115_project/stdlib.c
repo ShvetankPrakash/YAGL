@@ -56,7 +56,7 @@ struct edge *make_edge(struct node *from, struct node *to, int v) {
 	return edge;
 }
 
-void insert_edge(struct graph *g, struct node *from, struct node *to, int v) {
+void insert_edge(struct graph *g, struct node *from, int v, struct node *to) {
 	if (!g_contain_n(g, from) || !g_contain_n(g, to)) {
 		printf("Nodes don't exist in given graph.\n");
 		return;

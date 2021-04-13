@@ -51,10 +51,10 @@ typ:
   | VOID   { Void   }
   | BOOL   { Bool   }
   | typ LBRAC expr RBRAC { Array($1, $3) }
+  | EDGE   { Edge   }
 /*
   | CHAR   { Void   }
-  | NODE   { Void   }
-  | EDGE   { Void   }
+  | NODE   { Void   } 
 */
 fdecl:
    typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
@@ -85,7 +85,7 @@ stmt:
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
   | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
-                                              Assign($2, GraphLit($2), Noexpr)) }
+                                              Assign($2, GraphLit($2), Noexpr)) } 
   | typ ID SEMI                             { Binding($1, $2)       }
   | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4,Noexpr)) }
 
@@ -117,7 +117,11 @@ expr:
   | ID DOT ID        { Attr($1, $3)                      } 
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)             }  
+  | ID LPAREN args_opt RPAREN { Call($1, $3)             }
+  | ID COLON ID ARROW LBRACE LITERAL RBRACE ID 
+                          { EdgeOp($1, $3, Link, $6, $8) } 
+  | ID COLON ID ARROW ID 
+                          { EdgeOp($1, $3, Link, 1, $5) }
 
 args_opt:
     /* nothing */ { [] }
