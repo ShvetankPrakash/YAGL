@@ -178,6 +178,8 @@ void print_graph(struct graph *g) {
 		printf("Node (%d): %s%s", g->nodes[n]->id, g->nodes[n]->val,
 				iter++ % per_line == 0 ? "\n": 
 				n == g->n_pos - 1 ? "" : " --- ");
+	if (g->n_pos == 0)
+		printf("---- No Nodes in Graph ----\n");
 	printf("\n");
 	for (int n = 0; n < g->e_pos; n++) {
 		struct edge_list *e = g->edges[n];
@@ -189,6 +191,8 @@ void print_graph(struct graph *g) {
 			e = e->next_edge;
 		}
 	}
+	if (g->e_pos == 0)
+		printf("---- No Edges in Graph ----\n");
 	printf("============ End Graph Print =============\n");
 
 	/* Testing stuff DELETE LATER */
