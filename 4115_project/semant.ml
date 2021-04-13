@@ -139,7 +139,8 @@ let check_function func =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
     let type_of_attribute a = match a with
-      "length" -> Int
+        "length" -> Int
+      | "name"   -> String
     in
     (* Check array sizes are all of type int *)
     let check_arrays (_ : string) (binds : bind list) =
@@ -177,6 +178,7 @@ let check_function func =
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
+       | NodeLit e -> (Node, SNodeLit e)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))

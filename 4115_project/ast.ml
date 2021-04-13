@@ -11,6 +11,7 @@ type expr =
   | BoolLit of bool
   | StrLit of string
   | Id of string
+  | NodeLit of string * string
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr * expr
@@ -19,7 +20,8 @@ type expr =
   | Access of string * expr
   | Noexpr
 
-type typ = Void | Int | String | Float | Bool | Node | Array of typ * expr (* For now only testing ints *)
+type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
+         | Node
 
 type bind = typ * string
 

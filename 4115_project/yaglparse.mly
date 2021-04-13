@@ -50,7 +50,6 @@ typ:
   | STRING { String }
   | VOID   { Void   }
   | BOOL   { Bool   }
-  | NODE   { Void   }  
   | typ LBRAC expr RBRAC { Array($1, $3) }
 /*
   | CHAR   { Void   }
@@ -85,6 +84,9 @@ stmt:
   | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
+  | NODE ID LEFT_P expr RIGHT_P SEMI        { Binding_Assign((Node, $2), 
+                                              Assign($2, NodeLit($4), Noexpr)) }
+  |
   | typ ID SEMI                             { Binding($1, $2)       }
   | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4,Noexpr)) }
 
