@@ -1,2 +1,2 @@
 Node a ("hello");
-printString(a.name);
+printNode(a);

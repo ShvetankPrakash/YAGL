@@ -193,6 +193,11 @@ void print_graph(struct graph *g) {
 	}
 }
 
+void print_node(struct node *n) {
+
+	printf("%s\n", n->name);
+}
+
 
 #ifdef BUILD_TEST
 int main()

@@ -77,7 +77,12 @@ let translate functions =
   let make_node_t : L.lltype = 
       L.var_arg_function_type (L.pointer_type node_t) [| L.pointer_type i8_t |] in
   let make_node_func : L.llvalue = 
-      L.declare_function "make_node" make_node_t the_module in    
+      L.declare_function "make_node" make_node_t the_module in   
+  let print_node_t : L.lltype = 
+      L.var_arg_function_type i32_t [| L.pointer_type node_t |] in
+  let print_node_func : L.llvalue = 
+      L.declare_function "print_node" print_node_t the_module in   
+
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -143,7 +148,7 @@ let translate functions =
       | SId s   -> L.build_load (lookup s) s builder
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder (String, sId)) |] "strlen" builder
-      | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) (* THIS IS BROKEN *)
+   (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)
                      
       | SAttr (_, _) -> 
             raise (Failure "unsupported attribute type") 
@@ -201,6 +206,9 @@ let translate functions =
                                         L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
                                       in L.build_store e' ptr builder
                                )
+
+      | SCall ("printNode", [n]) ->
+    L.build_call print_node_func [| expr builder n |] "print_node" builder
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
