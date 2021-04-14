@@ -1,13 +1,11 @@
-
 int a;
 
-int printHello(int a) {
+int printHello{int a) {
   printString("Hello World!");
   printInt(a);
 }
 
 int printHello2() {
-  
   int a;
 
   printInt(7);
@@ -16,4 +14,3 @@ int printHello2() {
 
 
 printHello2();
-

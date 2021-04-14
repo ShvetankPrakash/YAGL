@@ -11,7 +11,7 @@ type expr =
   | BoolLit of bool
   | StrLit of string
   | Id of string
-  | NodeLit of string * string
+  | NodeLit of string * expr
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr * expr
@@ -70,6 +70,7 @@ let rec string_of_expr = function
   | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
+  | NodeLit(id, name) -> string_of_expr name
   | StrLit(str) -> str
   | Id(s) -> s
   | Attr(s, a) -> s ^ "." ^ a

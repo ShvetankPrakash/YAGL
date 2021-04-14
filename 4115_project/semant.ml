@@ -178,7 +178,7 @@ let check_function func =
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
-       | NodeLit e -> (Node, SNodeLit e)
+       | NodeLit (n, name) -> (Node, SNodeLit (n, expr name))
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))

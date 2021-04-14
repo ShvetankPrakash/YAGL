@@ -141,12 +141,15 @@ let translate functions =
 	SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
       | SId s   -> L.build_load (lookup s) s builder
-      | SAttr ((String, sid), "length") -> 
-            L.build_call strlen_func [| (expr builder (String, sid)) |] "strlen" builder
-      (* | SAttr ((Node, sid), "name") -> *)
+      | SAttr ((String, sId), "length") -> 
+            L.build_call strlen_func [| (expr builder (String, sId)) |] "strlen" builder
+      | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) (* THIS IS BROKEN *)
                      
       | SAttr (_, _) -> 
-            raise (Failure "unsupported attribute type")           
+            raise (Failure "unsupported attribute type") 
+      | SNodeLit (n, nodeName) -> 
+            L.build_call make_node_func [| (expr builder nodeName) |]
+            "make_node" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
