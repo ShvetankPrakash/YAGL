@@ -216,7 +216,7 @@ let check_function func =
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
           | Add when same && t1 = String   -> String
-          | Add when t1 = Graph && t2 = Node -> Graph
+          | Add | Sub  when t1 = Graph && t2 = Node -> Graph
           | Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal                  when same               -> Bool
           | Less | Greater

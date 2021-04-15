@@ -1,10 +1,20 @@
+
 /*
  *  Standard library functions in C for YAGL language
  */
 
 #include <stdio.h>
+#include <fcntl.h>    /* For O_RDWR */
+#include <unistd.h>   /* For open(), creat() */
 #include <string.h>
 #include <stdlib.h>
+
+int check_null(void *x) {
+	int nullfd = open("/dev/random", O_WRONLY);
+	if (!(write(nullfd, x, 1) < 0))
+		return 1;
+	return 0;
+}
 
 char *sconcat(char *s1, char *s2) {
 	char *s3 = malloc(strlen(s1) + strlen(s2) + 1);
@@ -45,6 +55,7 @@ void insert_into_edge_list(struct edge_list *, struct edge_list *);
 int g_contain_n(struct graph *, struct node *);
 char *node_to_string(struct node *);
 char *edge_to_string(struct edge *);
+void print_graph(struct graph *);
 
 /* For Jack's testing */
 struct edge *make_edge(struct node *from, struct node *to, int v) {
@@ -165,6 +176,37 @@ char *edge_to_string(struct edge *e) {
 	sprintf(s, "[%s] ---(%d)---> [%s]", from, val, to);
 	return s;
 }
+void remove_edge(struct graph *g, struct node *from, struct node *to) {
+	if (!from || !to || !g)
+		return;
+	for (int i = 0; i < g->e_pos; i++) {
+		struct edge_list *e = g->edges[i];
+		struct edge_list *prev = 0;
+		struct edge_list **home = &g->edges[i];
+		while (e && e->edge) {
+			struct edge *edge = e->edge;
+			struct edge_list *next = e->next_edge;
+			if (edge && edge->to_node && edge->from_node && 
+			    edge->to_node->id == to->id && edge->from_node->id == from->id) {
+				if (prev) {
+					prev->next_edge = next;
+				} else if (next) {
+					g->edges[i] = next;
+				} else {
+					if (i != g->e_pos - 1)
+						g->edges[i] = g->edges[i+1];
+					else
+						g->edges[i] = 0;
+					g->e_pos--;
+				}
+				free(e);
+				return;
+			}
+			prev = e;
+			e = next;
+		}
+	}
+}
 void remove_node(struct graph *g, struct node *n) {
 	if (!g_contain_n(g, n)) {
 		printf("Graph does not contain node %s\n", node_to_string(n));
@@ -172,8 +214,20 @@ void remove_node(struct graph *g, struct node *n) {
 	}
 
 	// First remove all edges that contain that node
-	// TODO
-	
+	for (int i = 0; i < g->e_pos; i++) {
+		struct edge_list *e = g->edges[i];
+		struct edge_list *prev = 0;
+		while (e != NULL && e->edge != NULL) {
+			struct edge *edge = e->edge;
+			struct edge_list *next = e->next_edge;
+			if (edge->to_node->id == n->id || edge->from_node->id == n->id) {
+				remove_edge(g, edge->from_node, edge->to_node);
+			}
+			prev = e;
+			e = next;
+		}
+	}
+
 	// Second remove node
 	int c = 0;
 	struct node *next;
@@ -275,7 +329,8 @@ void print_graph(struct graph *g) {
 	printf("Edges:\n");
 	for (int n = 0; n < g->e_pos; n++) {
 		struct edge_list *e = g->edges[n];
-		while (e != NULL && e->edge != NULL) {
+		int nullfd = open("/dev/random", O_WRONLY);
+		while (!(write(nullfd, e, sizeof(e)) < 0)) {
 			struct edge *edge = e->edge;
 			printf("%s\n", edge_to_string(edge));
 			e = e->next_edge;
@@ -286,14 +341,7 @@ void print_graph(struct graph *g) {
 
 	printf("============ End Graph Print =============\n");
 
-	/* Testing stuff */
-	struct node *r = make_node("Pittsburgh");
-	struct node *r2 = make_node("New York City");
-	insert_node(g, r);
-	insert_node(g, r2);
-	insert_edge(g, r, 5, r2);
 }
-
 #ifdef BUILD_TEST
 int main()
 {
