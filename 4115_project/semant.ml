@@ -25,7 +25,7 @@ let check (stmts, funcs) =
 
   in
 
- (*  *)
+ (* Extract the statements that are vdecls *)
   let extract_vdecls (stmts : stmt list) =
 
     List.fold_left (fun bind_list stmt -> 
@@ -86,7 +86,10 @@ let check (stmts, funcs) =
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String);
                                                  ("printBool", Bool);
-                                                 ("printFloat", Float)
+                                                 ("printFloat", Float);
+                                                 ("printChar", Char)
+                                                 ("printNode", Node);
+                                                 ("printGraph", Graph)
                                                ]
   in
 
@@ -140,7 +143,9 @@ let check_function func =
     in
 
     let type_of_attribute a = match a with
-      "length" -> Int
+        "length" -> Int
+      | "name"   -> String
+      | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
     let check_arrays s_table (_ : string) (binds : bind list) =
@@ -178,6 +183,13 @@ let check_function func =
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
+       | ChrLit c -> (Char, SChrLit c)
+       | NodeLit (n, name) -> let name' = expr name in 
+                (match name' with
+                        (String, _) -> (Node, SNodeLit (n, expr name))
+                        | _ -> raise (Failure "Node must be passed a String")
+                )
+       | GraphLit e -> (Graph, SGraphLit e)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s s_table, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a))
@@ -190,6 +202,7 @@ let check_function func =
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
           | Add when same && t1 = String   -> String
+          | Add when t1 = Graph && t2 = Node -> Graph
           | Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal                  when same               -> Bool
           | Less | Greater
@@ -205,8 +218,15 @@ let check_function func =
               Noexpr -> (e1, type_of_identifier var s_table)
             | _      -> let elem_typ = type_of_identifier var s_table in 
                         ( match elem_typ  with 
-                            Array(t, _) -> (e2, t)
-                          | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+                            Array(t, e) -> (match (e1, e) with
+                                           (Literal index, Literal arr_size) -> 
+                                                           if index > (arr_size - 1) 
+                                                           then raise(Failure("ERROR: Index out of bounds.")) 
+                                                           else (e2, t)
+                                            | (Unop _, _)  -> raise(Failure("ERROR: Index out of bounds.")) 
+                                            | _            -> (e2, t)  (* raise(Failure("TODO - extract value of e2 to catch out of bounds err")) *)
+                                           )
+                           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
                         )
           in
             let (rt, _) = expr rvalue s_table in
@@ -265,9 +285,10 @@ let check_function func =
           let rec check_stmt_list s m = match s with
               [Return _ as s] -> [check_stmt s m]
             | Return _ :: _   -> raise (Failure "nothing may follow a return")
-            | Block sl :: ss  -> let b1  = Block(sl) in  (check_stmt b1 m) :: (check_stmt_list ss m)(*TODO: FIX? @ ss) Flatten blocks *)
+            | Block sl :: ss  -> let b1  = Block(sl) in  (check_stmt b1 m) :: (check_stmt_list ss m)
             | s :: ss         -> check_stmt s m :: check_stmt_list ss m
             | []              -> []
+
           in SBlock(check_stmt_list sl updated_table)
       | Binding (typ, id) -> SBinding (typ, id)
       | Binding_Assign ((typ, id), e) -> 

@@ -4,7 +4,7 @@
 
 struct node {
 	int id;  // for hash table
-	int val;
+	char* name;
 };
 
 struct graph {
@@ -137,17 +137,37 @@ struct edge *g_contain_e(struct graph *g, struct edge *ed) {
 }
 
 static int id = 0;
-struct node *make_node(int val) {
+struct node *make_node(char *name) {
+
+	//TODO: do we really need id? do we need to malloc name or just store ptr from ocaml?
+
 	struct node *n = malloc(sizeof(struct node));
+
+	char *node_name = malloc(strlen(name) + 1);
+	strcpy(node_name, name);
+
 	n->id = id++;
-	n->val = val;
+	n->name = node_name;
 	return n;
 }
+
+char *update_node_name(node *n, char *new_name) {
+
+	free(n->name);
+
+	char *node_name = malloc(strlen(new_name) + 1);
+	strcpy(node_name, new_name);
+
+	n->id = id++;
+	n->name = node_name;
+
+	return n->name;
+} 
 
 void print_graph(struct graph *g) {
 	int iter = 1;
 	for (int n = 0; n < g->n_pos; n++)
-		printf("Node (%d): %d%s", g->nodes[n]->id, g->nodes[n]->val,
+		printf("Node %s (id: %d%s", g->nodes[n]->name, g->nodes[n]->id,
 				iter++ % 4 == 0 ? "\n": 
 				n == g->n_pos - 1 ? "" : " --- ");
 	printf("\n");
@@ -155,7 +175,7 @@ void print_graph(struct graph *g) {
 		struct edge_list *e = g->edges[n];
 		while (e != NULL && e->edge != NULL) {
 			struct edge *edge = e->edge;
-			printf("Edge (%d, %d): %d\n", edge->from_node->id, edge->to_node->id, edge->val);
+			printf("Edge (%s->%s): %d\n", edge->from_node->name, edge->to_node->name, edge->val);
 			e = e->next_edge;
 		}
 	}

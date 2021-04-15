@@ -9,8 +9,11 @@ type expr =
     Literal of int
   | FLit of string
   | BoolLit of bool
+  | ChrLit of char
   | StrLit of string
   | Id of string
+  | NodeLit of string * expr
+  | GraphLit of string
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr * expr
@@ -19,7 +22,8 @@ type expr =
   | Access of string * expr
   | Noexpr
 
-type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
+type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
+         | Node | Graph
 
 type bind = typ * string
 
@@ -68,7 +72,10 @@ let rec string_of_expr = function
   | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
+  | NodeLit(id, name) -> string_of_expr name
+  | GraphLit(name) -> name
   | StrLit(str) -> str
+  | ChrLit(c) -> Char.escaped c
   | Id(s) -> s
   | Attr(s, a) -> s ^ "." ^ a
   | Binop(e1, o, e2) ->
@@ -100,6 +107,9 @@ let rec string_of_typ = function
   | Float       -> "float"
   | String      -> "String"
   | Bool        -> "bool"
+  | Char        -> "char"
+  | Node        -> "Node"
+  | Graph       -> "Graph"
   | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function

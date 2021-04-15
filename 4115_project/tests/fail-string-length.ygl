@@ -1,1 +1,3 @@
-printInt("Hello World".length);
+int a = 1;
+
+printInt(a.length);

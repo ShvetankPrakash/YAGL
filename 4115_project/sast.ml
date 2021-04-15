@@ -7,8 +7,11 @@ and sx =
     SLiteral of int
   | SFLit of string
   | SBoolLit of bool
+  | SChrLit of char
   | SStrLit of string
   | SId of string
+  | SNodeLit of string * sexpr
+  | SGraphLit of string
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
@@ -44,6 +47,9 @@ let rec string_of_sexpr (t, e) =
   | SFLit(l) -> l
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
+  | SChrLit(c) -> Char.escaped c
+  | SNodeLit(id, name)  -> string_of_sexpr name
+  | SGraphLit(name) -> name
   | SStrLit(str) -> str
   | SId(s) -> s
   | SAttr(sx, a) -> string_of_sexpr sx ^ "." ^ a
