@@ -87,7 +87,8 @@ let translate functions =
           L.function_type (L.pointer_type graph_t)
           [| i32_t |] in
   let insert_edge_t : L.lltype = 
-          L.function_type (void_t) [| (L.pointer_type graph_t);
+          L.function_type (L.pointer_type graph_t)
+           [| (L.pointer_type graph_t);
                                       (L.pointer_type node_t);
                                       i32_t;
                                       (L.pointer_type node_t) |] in
