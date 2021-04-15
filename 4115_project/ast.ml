@@ -74,7 +74,7 @@ let rec string_of_expr = function
   | FLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
-  | NodeLit(id, name) -> string_of_expr name
+  | NodeLit(_, name) -> string_of_expr name
   | GraphLit(name) -> name
   | StrLit(str) -> str
   | ChrLit(c) -> Char.escaped c

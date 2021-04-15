@@ -49,7 +49,7 @@ let rec string_of_sexpr (t, e) =
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
   | SChrLit(c) -> Char.escaped c
-  | SNodeLit(id, name)  -> string_of_sexpr name
+  | SNodeLit(_, name)  -> string_of_sexpr name
   | SGraphLit(name) -> name
   | SStrLit(str) -> str
   | SId(s) -> s

@@ -15,6 +15,7 @@ http://llvm.moe/ocaml/
 module L = Llvm
 module A = Ast
 open Sast 
+open Ast
 
 module StringMap = Map.Make(String)
 
@@ -25,12 +26,6 @@ let translate functions =
   (* Create the LLVM compilation module into which
      we will generate code *)
   let the_module = L.create_module context "YAGL" in
-
-  (* Create Node struct type *)
-  let node = [| L.i32_type context;
-                L.pointer_type (L.i8_type context); |] in
-
-  let node_struct = L.struct_type context node in
 
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
@@ -49,9 +44,9 @@ let translate functions =
                    [| L.pointer_type (L.named_struct_type context "node_t");
                       L.pointer_type (L.named_struct_type context "node_t"); 
                       i32_t  |]
-  and edge_list_t = L.struct_type context 
+  (*and edge_list_t = L.struct_type context 
                     [| L.pointer_type (L.named_struct_type context "edge_t"); 
-                       L.pointer_type (L.named_struct_type context "edge_list_t") |]
+                       L.pointer_type (L.named_struct_type context "edge_list_t") |]*)
   and graph_t = L.struct_type context 
                 [| i32_t; i32_t; i32_t; 
                    L.pointer_type (L.pointer_type (L.named_struct_type context "node_t")); 
@@ -202,14 +197,16 @@ let translate functions =
           and e4' = expr builder s_table e4 in
           (match op with
             A.Link -> L.build_call
-          ) insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder 
+          | _ -> raise (Failure "This edge op is not implemented.")
+          )
+          insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
       | SId s   -> L.build_load (lookup s s_table) s builder
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
    (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
       | SAttr (_, _) -> 
             raise (Failure "unsupported attribute type") 
-      | SNodeLit (n, nodeName) -> 
+      | SNodeLit (_, nodeName) -> 
             L.build_call make_node_func [| (expr builder s_table nodeName) |]
             "make_node" builder
       | SBinop ((A.Graph, _ ) as e1, op, e2) ->
@@ -237,6 +234,7 @@ let translate functions =
 	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
+          | _ -> raise (Failure "This float binop is not implemented")
 	  ) e1' e2' "tmp" builder
       | SBinop (((A.String,_ )) as e, op, e2) ->
           if op == A.Add then
@@ -257,11 +255,12 @@ let translate functions =
 	  | A.Equal   -> L.build_icmp L.Icmp.Eq
 	  | A.Less    -> L.build_icmp L.Icmp.Slt
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
+          | _         -> raise (Failure "This binop is not implemented")
 	  ) e1' e2' "tmp" builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SChrLit  c  -> L.const_int i8_t (Char.code c)
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
-      | SGraphLit g -> 
+      | SGraphLit _ -> 
                   L.build_call make_graph_func [| L.const_int i32_t 1 |]
                   "make_graph" builder
       | SAssign (s, e1, e2) -> (match e2 with 
@@ -346,8 +345,8 @@ let translate functions =
                                           ) :: s_table (*TODO: FIX LEAKING ON THE STACK?*)
                                           in List.fold_left (stmt updated_table) builder sl
       | SExpr e -> ignore(expr builder s_table e); builder 
-      | SBinding (_, _) -> builder
-      | SBinding_Assign ((_, _), e) -> (expr builder s_table e); builder
+      | SBinding (_, _) -> builder;
+      | SBinding_Assign ((_, _), e) -> ignore (expr builder s_table e); builder
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder

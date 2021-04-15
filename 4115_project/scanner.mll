@@ -56,6 +56,7 @@ rule token = parse
                                                                 |'t' -> CHRLIT('\t')
                                                                 |'r' -> CHRLIT('\r')
                                                                 |'n' -> CHRLIT('\n')
+                                                                | _ -> raise (Failure "Internal error. Case should never be reached.")
                                                              } 
 | "'" ascii "'"                                       as lxm { CHRLIT(String.get lxm 1) } 
 | '"' (( ascii # '"' )* escapeChars*)+ '"'            as lxm { STRLIT(String.sub lxm 1 ((String.length lxm )-2) ) }
