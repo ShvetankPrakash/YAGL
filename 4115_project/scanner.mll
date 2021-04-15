@@ -39,6 +39,7 @@ rule token = parse
 | "bfs"    { BFS }
 | "int"    { INT }
 | "bool"   { BOOL }
+| "char"   { CHAR }
 | "float"  { FLOAT }
 | "Graph"  { GRAPH }
 | "String" { STRING }
@@ -50,9 +51,14 @@ rule token = parse
 | digits as lxm { LITERAL(int_of_string lxm) }
 | digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
-| "'" escapeChars "'"                                 as lxm { CHRLIT(String.get lxm 0) } 
-| "'" ascii "'"                                       as lxm { CHRLIT(String.get lxm 0) }    (* handle escape chars *)
-| '"' (( ascii # '"' )* escapeChars*)+ '"'                      as lxm { STRLIT(String.sub lxm 1 ((String.length lxm )-2) ) }
+| "'" escapeChars "'"                                 as lxm { match lxm.[2] with 
+                                                                 'b' -> CHRLIT('\b')
+                                                                |'t' -> CHRLIT('\t')
+                                                                |'r' -> CHRLIT('\r')
+                                                                |'n' -> CHRLIT('\n')
+                                                             } 
+| "'" ascii "'"                                       as lxm { CHRLIT(String.get lxm 1) } 
+| '"' (( ascii # '"' )* escapeChars*)+ '"'            as lxm { STRLIT(String.sub lxm 1 ((String.length lxm )-2) ) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 

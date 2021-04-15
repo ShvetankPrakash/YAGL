@@ -1,4 +1,3 @@
-
 int a;
 
 int printHello(int a) {
@@ -7,7 +6,6 @@ int printHello(int a) {
 }
 
 int printHello2() {
-  
   int a;
 
   printInt(7);
@@ -16,4 +14,3 @@ int printHello2() {
 
 
 printHello2();
-

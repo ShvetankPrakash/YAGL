@@ -1,0 +1,4 @@
+bool[5] a;
+int b;
+b = 5;
+a[b] = false; /* Index out of bounds */

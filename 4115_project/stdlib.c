@@ -16,7 +16,7 @@ char *sconcat(char *s1, char *s2) {
 
 struct node {
 	int id;  // for hash table
-	char *val;
+	char* name;
 };
 
 struct graph {
@@ -147,11 +147,11 @@ void insert_node(struct graph *g, struct node *n) {
 	
 }
 char *node_to_string(struct node *n) {
-	int name_length = strlen(n->val);
+	int name_length = strlen(n->name);
 	int additional_space_safe = 30;
 	char *s = malloc(additional_space_safe 
 			+ name_length + 1);
-	sprintf(s, "(%d) : %s", n->id, n->val);
+	sprintf(s, "(%d) : %s", n->id, n->name);
 	return s;
 }
 char *edge_to_string(struct edge *e) {
@@ -230,11 +230,33 @@ struct edge *g_contain_e(struct graph *g, struct edge *ed) {
 }
 
 static int id = 0;
-struct node *make_node(char *val) {
+struct node *make_node(char *name) {
+
 	struct node *n = malloc(sizeof(struct node));
+
+	char *node_name = malloc(strlen(name) + 1);
+	strcpy(node_name, name);
+
 	n->id = id++;
-	n->val = val;
+	n->name = node_name;
 	return n;
+}
+
+char *update_node_name(struct node *n, char *new_name) {
+
+	free(n->name);
+
+	char *node_name = malloc(strlen(new_name) + 1);
+	strcpy(node_name, new_name);
+
+	n->id = id++;
+	n->name = node_name;
+
+	return n->name;
+} 
+
+void print_node(struct node *n) {
+	printf("%s\n", n->name);
 }
 
 void print_graph(struct graph *g) {
@@ -259,7 +281,7 @@ void print_graph(struct graph *g) {
 			e = e->next_edge;
 		}
 	}
-	if (g->n_pos == 0)
+	if (g->e_pos == 0)
 		printf("There aren't any edges in this graph.\n");
 
 	printf("============ End Graph Print =============\n");

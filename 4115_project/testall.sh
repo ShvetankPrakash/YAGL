@@ -167,9 +167,10 @@ which "$LLI" >> $globallog || LLIFail
 
 if [ ! -f stdlib.o ]
 then
-    echo "Could not find stdlib.o"
-    echo "Try \"make stdlib.o\""
-    exit 1
+    # echo "Could not find stdlib.o"
+    # echo "Try \"make stdlib.o\""
+    # exit 1
+    Run "make" "all"
 fi
 
 if [ $# -ge 1 ]
