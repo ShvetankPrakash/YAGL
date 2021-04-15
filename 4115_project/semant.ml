@@ -25,7 +25,7 @@ let check (stmts, funcs) =
 
   in
 
- (*  *)
+ (* Extract the statements that are vdecls *)
   let extract_vdecls (stmts : stmt list) =
 
     List.fold_left (fun bind_list stmt -> 
@@ -215,8 +215,15 @@ let check_function func =
               Noexpr -> (e1, type_of_identifier var)
             | _      -> let elem_typ = type_of_identifier var in 
                         ( match elem_typ  with 
-                            Array(t, _) -> (e2, t)
-                          | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+                            Array(t, e) -> (match (e1, e) with
+                                           (Literal index, Literal arr_size) -> 
+                                                           if index > (arr_size - 1) 
+                                                           then raise(Failure("ERROR: Index out of bounds.")) 
+                                                           else (e2, t)
+                                            | (Unop _, _)  -> raise(Failure("ERROR: Index out of bounds.")) 
+                                            | _            -> (e2, t)  (* raise(Failure("TODO - extract value of e2 to catch out of bounds err")) *)
+                                           )
+                           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
                         )
           in
             let (rt, _) = expr rvalue in
