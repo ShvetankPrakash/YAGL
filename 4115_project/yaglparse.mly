@@ -7,14 +7,13 @@ open Ast
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW COLON DOT QMARK
-%token NOT EQ NEQ LT LEQ GT GEQ AND OR
+%token NOT EQ LT GT AND OR
 %token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
-%token <float> FLIT
 %token <bool> BLIT
 %token <char> CHRLIT
 %token <string> STRLIT
-%token <string> ID /* FLIT Note: not sure what "FLIT" was referring to here */
+%token <string> ID FLIT
 %token EOF
 
 %start program
@@ -25,8 +24,8 @@ open Ast
 %right ASSIGN
 %left OR
 %left AND
-%left EQ NEQ COLON
-%left LT GT LEQ GEQ
+%left EQ COLON
+%left LT GT
 %left ARROW
 %left PLUS MINUS
 %left TIMES DIVIDE
@@ -54,8 +53,6 @@ typ:
   | typ LBRAC expr RBRAC { Array($1, $3) }
 /*
   | CHAR   { Void   }
-  | NODE   { Void   }
-  | GRAPH  { Void   }
   | EDGE   { Void   }
 */
 fdecl:
@@ -72,20 +69,16 @@ formals_opt:
 formal_list:
     typ ID                   { [($1,$2)]     }
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
-
-vdecl:
-    typ ID SEMI { ($1, $2) }
-
-/*
-Add variable assignment in same stmt
-vdecl:
-     typ ID SEMI { ($1, $2, Noexpr) } 
-   | typ ID ASSIGN expr SEMI { ($1, $2, $3) }
-*/
-
+  
 stmt_list:
   /* nothing */    { [] }
   | stmt_list stmt { $2::$1 }
+
+graph_stmts:
+    NODE ID LPAREN expr RPAREN SEMI         { Binding_Assign((Node, $2), 
+                                              Assign($2, NodeLit($2, $4), Noexpr)) }
+  | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
+                                              Assign($2, GraphLit($2), Noexpr)) }
 
 stmt:
     expr SEMI                               { Expr $1               }
@@ -96,13 +89,13 @@ stmt:
   | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
-  | vdecl                                   { Binding($1)           }
+  | graph_stmts                             { $1                    }
+  | typ ID SEMI                             { Binding($1, $2)       }
+  | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4,Noexpr)) }
 
 expr_opt: /* can be expr or nothing */
         /* epsilon/nothing */   { Noexpr }
       | expr                    { $1     }
-
-
 
 expr:
     LITERAL          { Literal($1)                       }
@@ -125,7 +118,7 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3, Noexpr)            }
   | ID LBRAC expr RBRAC ASSIGN expr { Assign($1, $3, $6) }
   | ID COLON expr QMARK expr { Noexpr                    }
-  | ID DOT ID        { Noexpr                            }
+  | ID DOT ID        { Attr($1, $3)                      } 
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)             }  

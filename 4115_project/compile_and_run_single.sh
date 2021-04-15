@@ -12,8 +12,8 @@ echo "---------------LLVM IR--------------"
 llc -relocation-model=pic "${1}.ll" > "${1}.s"
 echo "---------------ASSEMBLY--------------"
 cat "${1}.s"
-cc -c printbig.c
-cc -o "${1}.exe" "${1}.s" printbig.o
+cc -c stdlib.c
+cc -o "${1}.exe" "${1}.s" stdlib.o
 echo "---------------EXE OUTPUT--------------"
 "./${1}.exe"
-rm printbig.o
+rm stdlib.o

@@ -13,7 +13,7 @@ helloworld :
 # to test linking external code
 
 .PHONY : all
-all : yagl.native printbig.o
+all : yagl.native stdlib.o
 
 # "make yagl.native" compiles the compiler
 #
@@ -32,14 +32,18 @@ yagl.native :
 clean :
 	ocamlbuild -clean
 	rm -rf testall.log ocamlllvm *.diff
-	rm -rf printbig.o
+	rm -rf stdlib.o
 	rm -rf fail-*.err
 	rm -rf test-*.out
+	rm -rf test-*.ll
+	rm -rf test-*.s
+	rm -rf test-*.diff
+	rm -rf test-*.exe
 
 # Testing the "printbig" example
 
-printbig : printbig.c
-	cc -o printbig -DBUILD_TEST printbig.c
+stdlib : stdlib.c
+	cc -o stdlib -DBUILD_TEST stdlib.c
 
 # Building the tarball
 
@@ -47,7 +51,7 @@ TESTS = \
   add1 arith1 arith2 arith3 fib float1 float2 float3 for1 for2 func1 \
   func2 func3 func4 func5 func6 func7 func8 func9 gcd2 gcd global1 \
   global2 global3 hello if1 if2 if3 if4 if5 if6 local1 local2 ops1 \
-  ops2 printbig var1 var2 while1 while2
+  ops2 var1 var2 while1 while2
 
 FAILS = \
   assign1 assign2 assign3 dead1 dead2 expr1 expr2 expr3 float1 float2 \
@@ -60,7 +64,7 @@ TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
 
 TARFILES = ast.ml sast.ml codegen.ml Makefile _tags yagl.ml yaglparse.mly \
 	README scanner.mll semant.ml testall.sh \
-	printbig.c arcade-font.pbm font2c \
+	stdlib.c arcade-font.pbm font2c \
 	Dockerfile \
 	$(TESTFILES:%=tests/%) 
 

@@ -5,14 +5,17 @@ open Ast
 type sexpr = typ * sx
 and sx =
     SLiteral of int
-  | SFLit of float
+  | SFLit of string
   | SBoolLit of bool
   | SStrLit of string
   | SId of string
+  | SNodeLit of string * sexpr
+  | SGraphLit of string
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
+  | SAttr of sexpr * string
   | SAccess of string * sexpr
   | SNoexpr
 
@@ -23,6 +26,7 @@ type sstmt =
   | SBfs of sexpr * sexpr * sexpr * sstmt
   | SWhile of sexpr * sstmt
   | SBinding of bind  
+  | SBinding_Assign of bind * sexpr
   | SReturn of sexpr 
 
 type sfunc_decl = {
@@ -39,11 +43,14 @@ type sprogram = sfunc_decl list
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
     SLiteral(l) -> string_of_int l
-  | SFLit(f) -> string_of_float f
+  | SFLit(l) -> l
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
+  | SNodeLit(id, name)  -> string_of_sexpr name
+  | SGraphLit(name) -> name
   | SStrLit(str) -> str
   | SId(s) -> s
+  | SAttr(sx, a) -> string_of_sexpr sx ^ "." ^ a
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
@@ -71,6 +78,8 @@ let rec string_of_sstmt = function
       string_of_sexpr e3  ^ ") " ^ string_of_sstmt s
   | SWhile(e, s) -> "while (" ^ string_of_sexpr e ^ ") " ^ string_of_sstmt s
   | SBinding(t, id) -> "(" ^ string_of_typ t ^ " : " ^ id ^ ");\n"
+  | SBinding_Assign((t, id), e) -> 
+        string_of_typ t ^ " " ^ id ^ " = " ^ string_of_sexpr e ^ ";\n"
   | SReturn(e) -> "return " ^ string_of_sexpr e ^ ";\n" 
 
 let string_of_sfdecl fdecl =

@@ -31,6 +31,7 @@ let check (stmts, funcs) =
     List.fold_left (fun bind_list stmt -> 
       match stmt with
         Binding b -> b :: bind_list
+      | Binding_Assign (b, _) -> b :: bind_list
       | _ -> bind_list 
     ) [] stmts
 
@@ -85,7 +86,9 @@ let check (stmts, funcs) =
     in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
                                                  ("printString", String);
                                                  ("printBool", Bool);
-                                                 ("printFloat", Float)
+                                                 ("printFloat", Float);
+                                                 ("printNode", Node);
+                                                 ("printGraph", Graph)
                                                ]
   in
 
@@ -137,13 +140,17 @@ let check_function func =
       try StringMap.find s symbols
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
-
+    let type_of_attribute a = match a with
+        "length" -> Int
+      | "name"   -> String
+      | _ -> raise( Failure "Unknown attribute!")
+    in
     (* Check array sizes are all of type int *)
-    let check_arrays (kind : string) (binds : bind list) =
+    let check_arrays (_ : string) (binds : bind list) =
        List.iter (function
-           (Array(_, e), id) -> let rec is_int e' = match e' with 
+           (Array(_, e), _) -> let rec is_int e' = match e' with 
                                  Literal(_)        -> true
-                               | Binop(e1, op, e2) -> if (is_int e1) && (is_int e2) then true else false
+                               | Binop(e1, _, e2) -> if (is_int e1) && (is_int e2) then true else false
                                | Id(s)             -> let typ = type_of_identifier s in 
                                                                 (match typ with 
                                                                   Int -> true
@@ -153,8 +160,6 @@ let check_function func =
                                in if found_int then () else raise(Failure("Size of array is not of type int."))
          | _ -> ()) binds;
     in check_arrays "formals" func.formals; check_arrays "locals" (extract_vdecls func.body);
-
-
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr = function
          Call(fname, args) as call -> 
@@ -176,8 +181,15 @@ let check_function func =
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
+       | NodeLit (n, name) -> let name' = expr name in 
+                (match name' with
+                        (String, _) -> (Node, SNodeLit (n, expr name))
+                        | _ -> raise (Failure "Node must be passed a String")
+                )
+       | GraphLit e -> (Graph, SGraphLit e)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
+       | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 
           and (t2, e2') = expr e2 in
@@ -186,12 +198,13 @@ let check_function func =
           (* Determine expression type based on operator and operand types *)
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
-          (*| Add when same && t1 = String   -> String*)
-          (*| Add | Sub | Mult | Div when same && t1 = Float -> Float
+          | Add when same && t1 = String   -> String
+          | Add when t1 = Graph && t2 = Node -> Graph
+          | Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal                  when same               -> Bool
           | Less | Greater
                      when same && (t1 = Int || t1 = Float) -> Bool
-          | And | Or when same && t1 = Bool -> Bool*)
+          | And | Or when same && t1 = Bool -> Bool
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -208,12 +221,12 @@ let check_function func =
                                                            then raise(Failure("ERROR: Index out of bounds.")) 
                                                            else (e2, t)
                                             | (Unop _, _)  -> raise(Failure("ERROR: Index out of bounds.")) 
-                                            | _            -> (e2, t)  (* raise(Failure("TODO")) *)
+                                            | _            -> (e2, t)  (* raise(Failure("TODO - extract value of e2 to catch out of bounds err")) *)
                                            )
-                          | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+                           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
                         )
           in
-            let (rt, e') = expr rvalue in
+            let (rt, _) = expr rvalue in
             let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
               string_of_typ rt ^ " in " ^ string_of_expr ex
             in (check_assign lt rt err, SAssign(var, expr e1, expr e2))
@@ -230,16 +243,21 @@ let check_function func =
          )
        | Noexpr -> (Void, SNoexpr) 
        (* Exprs still to implement below *) 
-       | Unop (a, b) -> raise (Failure("Unop ERROR")) 
-       | _ -> raise (Failure("Error 1: Ints only and calls are supported exressions currently.")) 
+       | Unop (_, _) -> raise (Failure("Unop ERROR")) 
+    in
+
+    let check_bool_expr e = 
+      let (t', e') = expr e
+      and err = "expected Boolean expression in " ^ string_of_expr e
+      in if t' != Bool then raise (Failure err) else (t', e') 
     in 
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
-      | If(p, b1, b2) -> raise (Failure "fail if")
-      | Bfs(e1, e2, e3, st) -> raise (Failure "fail for")
-      | While(p, s) -> raise (Failure "fail while")
+      | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
+      | Bfs(_, _, _, _) -> raise (Failure "fail for")
+      | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
       | Return e -> let (t, e') = expr e in
                 if t = func.typ then SReturn (t, e')
                 else raise (
@@ -257,8 +275,9 @@ let check_function func =
             | s :: ss         -> check_stmt s :: check_stmt_list ss
             | []              -> []
           in SBlock(check_stmt_list sl)
-      | Binding (typ, id) -> SBinding (typ, id)
-      | _ -> raise (Failure "fail ???")
+      | Binding (typ, id) ->  SBinding (typ, id)
+      | Binding_Assign ((typ, id), e) -> 
+                      SBinding_Assign ((typ, id), expr e);
   in 
 
   { styp = func.typ;
