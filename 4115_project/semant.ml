@@ -87,7 +87,7 @@ let check (stmts, funcs) =
                                                  ("printString", String);
                                                  ("printBool", Bool);
                                                  ("printFloat", Float);
-                                                 ("printChar", Char)
+                                                 ("printChar", Char);
                                                  ("printNode", Node);
                                                  ("printGraph", Graph)
                                                ]
@@ -184,9 +184,9 @@ let check_function func =
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
        | ChrLit c -> (Char, SChrLit c)
-       | NodeLit (n, name) -> let name' = expr name in 
+       | NodeLit (n, name) -> let name' = expr name s_table in 
                 (match name' with
-                        (String, _) -> (Node, SNodeLit (n, expr name))
+                        (String, _) -> (Node, SNodeLit (n, expr name s_table))
                         | _ -> raise (Failure "Node must be passed a String")
                 )
        | GraphLit e -> (Graph, SGraphLit e)

@@ -267,7 +267,7 @@ let translate functions =
 	  L.build_call printf_func [| int_format_str ; (expr builder s_table e) |]
 	    "printf" builder
       | SCall ("printChar", [e])  ->
-	  L.build_call printf_func [| char_format_str ; (expr builder e) |]
+	  L.build_call printf_func [| char_format_str ; (expr builder s_table e) |]
 	    "printf" builder
       | SCall ("printFloat", [e]) ->
     L.build_call printf_func [| float_format_str ; (expr builder s_table e) |]
