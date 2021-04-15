@@ -53,7 +53,6 @@ typ:
   | typ LBRAC expr RBRAC { Array($1, $3) }
 /*
   | CHAR   { Void   }
-  | GRAPH  { Void   }
   | EDGE   { Void   }
 */
 fdecl:
@@ -86,7 +85,8 @@ stmt:
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
   | NODE ID LPAREN expr RPAREN SEMI         { Binding_Assign((Node, $2), 
                                               Assign($2, NodeLit($2, $4), Noexpr)) }
-  |
+  | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
+                                              Assign($2, GraphLit($2), Noexpr)) }
   | typ ID SEMI                             { Binding($1, $2)       }
   | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4,Noexpr)) }
 

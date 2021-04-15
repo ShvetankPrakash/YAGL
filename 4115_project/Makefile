@@ -35,6 +35,10 @@ clean :
 	rm -rf stdlib.o
 	rm -rf fail-*.err
 	rm -rf test-*.out
+	rm -rf test-*.ll
+	rm -rf test-*.s
+	rm -rf test-*.diff
+	rm -rf test-*.exe
 
 # Testing the "printbig" example
 

@@ -13,7 +13,7 @@ module StringMap = Map.Make(String)
 let check (stmts, funcs) =
   let main = 
      {
-       typ = Void;
+       typ = Int;
        fname = "main"; 
        formals = [];
        body = stmts
@@ -88,6 +88,7 @@ let check (stmts, funcs) =
                                                  ("printBool", Bool);
                                                  ("printFloat", Float);
                                                  ("printNode", Node)
+                                                 ("printGraph", Graph)
                                                ]
   in
 
@@ -142,6 +143,7 @@ let check_function func =
     let type_of_attribute a = match a with
         "length" -> Int
       | "name"   -> String
+      | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
     let check_arrays (_ : string) (binds : bind list) =
@@ -180,6 +182,7 @@ let check_function func =
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
        | NodeLit (n, name) -> (Node, SNodeLit (n, expr name))
+       | GraphLit e -> (Graph, SGraphLit e)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))
@@ -260,7 +263,7 @@ let check_function func =
             | s :: ss         -> check_stmt s :: check_stmt_list ss
             | []              -> []
           in SBlock(check_stmt_list sl)
-      | Binding (typ, id) -> SBinding (typ, id)
+      | Binding (typ, id) ->  SBinding (typ, id)
       | Binding_Assign ((typ, id), e) -> 
                       SBinding_Assign ((typ, id), expr e);
   in 

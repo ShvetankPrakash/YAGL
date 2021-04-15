@@ -12,6 +12,7 @@ type expr =
   | StrLit of string
   | Id of string
   | NodeLit of string * expr
+  | GraphLit of string
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr * expr
@@ -21,7 +22,7 @@ type expr =
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Array of typ * expr (* For now only testing ints *)
-         | Node
+         | Node | Graph
 
 type bind = typ * string
 
@@ -71,6 +72,7 @@ let rec string_of_expr = function
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | NodeLit(id, name) -> string_of_expr name
+  | GraphLit(name) -> name
   | StrLit(str) -> str
   | Id(s) -> s
   | Attr(s, a) -> s ^ "." ^ a
@@ -104,6 +106,7 @@ let rec string_of_typ = function
   | String      -> "String"
   | Bool        -> "bool"
   | Node        -> "Node"
+  | Graph       -> "Graph"
   | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function
