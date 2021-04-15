@@ -1,6 +1,6 @@
 int a;
 
-int printHello{int a) {
+int printHello(int a) {
   printString("Hello World!");
   printInt(a);
 }
