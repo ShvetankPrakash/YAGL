@@ -120,7 +120,6 @@ let check_function func =
     
     (* Make sure no formals or locals are void or duplicates *)
     check_binds "formal" func.formals;
-    check_stmt_binds "local" func.body;
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
@@ -143,13 +142,13 @@ let check_function func =
     let type_of_attribute a = match a with
       "length" -> Int
     in
-    (* Check array sizes are all of type int *)(*
-    let check_arrays (_ : string) (binds : bind list) =
+    (* Check array sizes are all of type int *)
+    let check_arrays s_table (_ : string) (binds : bind list) =
        List.iter (function
            (Array(_, e), _) -> let rec is_int e' = match e' with 
                                  Literal(_)        -> true
                                | Binop(e1, _, e2) -> if (is_int e1) && (is_int e2) then true else false
-                               | Id(s)             -> let typ = type_of_identifier s arg_symbols in (*TODO: FIX THIS ARG SYMBOLS*)
+                               | Id(s)             -> let typ = type_of_identifier s s_table in 
                                                                 (match typ with 
                                                                   Int -> true
                                                                 | _   -> false) 
@@ -157,7 +156,7 @@ let check_function func =
                                in let found_int = is_int e
                                in if found_int then () else raise(Failure("Size of array is not of type int."))
          | _ -> ()) binds;
-    in check_arrays "formals" func.formals; check_arrays "locals" (extract_vdecls func.body);*)
+    in check_arrays arg_symbols "formals" func.formals;
     (* Return a semantically-checked expression, i.e., with a type *)
     let rec expr ex1 s_table = match ex1 with
          Call(fname, args) as call -> 
@@ -252,15 +251,21 @@ let check_function func =
       (* TODO: If we want scoping and declaring variables in a nested
        * block, then we cannot simply flatten                        *)
       | Block sl ->
+
           (* Create new symbol table for this block's scope and add to head of outer scope symbol table *)
           let updated_table = (List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
                   StringMap.empty (extract_vdecls sl)) :: symbol_table 
           in  
 
+          (* Make sure no formals or locals are void or duplicates *)
+          check_stmt_binds "local" sl;
+          (* Check array sizes are all of type int *)
+          check_arrays updated_table "locals" (extract_vdecls sl);
+
           let rec check_stmt_list s m = match s with
               [Return _ as s] -> [check_stmt s m]
             | Return _ :: _   -> raise (Failure "nothing may follow a return")
-            | Block sl :: ss  ->print_string("Here"); check_stmt_list sl m; check_stmt_list ss m(*TODO: FIX? @ ss) Flatten blocks *)
+            | Block sl :: ss  -> let b1  = Block(sl) in  (check_stmt b1 m) :: (check_stmt_list ss m)(*TODO: FIX? @ ss) Flatten blocks *)
             | s :: ss         -> check_stmt s m :: check_stmt_list ss m
             | []              -> []
           in SBlock(check_stmt_list sl updated_table)
