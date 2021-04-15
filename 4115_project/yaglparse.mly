@@ -7,7 +7,7 @@ open Ast
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW COLON DOT QMARK
-%token NOT EQ LT GT AND OR
+%token NOT EQ LT GT AND OR BAR
 %token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
 %token <bool> BLIT
@@ -96,6 +96,14 @@ expr_opt: /* can be expr or nothing */
         /* epsilon/nothing */   { Noexpr }
       | expr                    { $1     }
 
+edge:
+    ID COLON ID ARROW BAR expr BAR ID   { EdgeOp(Id($1), Id($3), Link, $6, Id($8)) }
+  | ID COLON ID ARROW LITERAL ID        { EdgeOp(Id($1), Id($3), Link, Literal($5), Id($6)) }
+  | ID COLON ID ARROW ID ID             { EdgeOp(Id($1), Id($3), Link, Id($5), Id($6)) }
+  | ID COLON ID ARROW ID                { EdgeOp(Id($1), Id($3), Link, Literal(1), Id($5)) }
+  /*| edge ARROW LITERAL ID             { ChainedEdgeOp($1, Plus, $3, $4) }
+  | edge ARROW ID                       { ChainedEdgeOp($1, Plus, 1, $3) }*/
+
 expr:
     LITERAL          { Literal($1)                       }
   | FLIT             { FLit($1)                          }
@@ -121,12 +129,10 @@ expr:
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)             }
-  | expr COLON expr ARROW expr expr 
-                          { EdgeOp($1, $3, Link, $5, $6) }
-  | expr COLON expr ARROW expr 
-                          { EdgeOp($1, $3, Link, Literal(1), $5) }
-  /*| expr COLON expr ARROW expr
-                          { EdgeOp($1, $3, Link, 1, $5) }*/
+  | edge {$1}/*ID COLON ID ARROW expr ID
+                          { EdgeOp(Id($1), Id($3), Link, $5, Id($6)) }*/
+  /*| ID COLON ID ARROW ID
+                          { EdgeOp(Id($1), Id($3), Link, 1, Id($5))  }*/
 
 args_opt:
     /* nothing */ { [] }
