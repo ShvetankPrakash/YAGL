@@ -118,20 +118,25 @@ let translate functions =
 
     (* Return the value for a variable or formal argument.
        Check local names first, then global names *)
-    let lookup n = (* try *) StringMap.find n local_vars
-                  (* with Not_found -> StringMap.find n global_vars *)
+    let outermost_func_scope  = [local_vars]
+    in
+
+    let rec lookup n symbol_tables_list = match symbol_tables_list with
+       last_map :: []        -> (try StringMap.find n last_map with Not_found -> raise (Failure ("Should have been caught in semant.")))
+     | head_map :: tail_maps -> (try StringMap.find n head_map with Not_found -> lookup n tail_maps)
+     | []                    -> raise(Failure("Internal Error: Symbol table not built."))
     in
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder ((_, e) : sexpr) = match e with
+    let rec expr builder s_table ((_, e) : sexpr) = match e with
 	SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
-      | SId s   -> L.build_load (lookup s) s builder
+      | SId s   -> L.build_load (lookup s s_table) s builder
       | SAttr (s, "length") -> 
-          L.build_call strlen_func [| (expr builder s) |] "strlen" builder
+          L.build_call strlen_func [| (expr builder s_table s) |] "strlen" builder
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
+	  let e1' = expr builder s_table e1
+	  and e2' = expr builder s_table e2 in
 	  (match op with 
 	    A.Add     -> L.build_fadd
 	  | A.Sub     -> L.build_fsub
@@ -145,13 +150,13 @@ let translate functions =
 	  ) e1' e2' "tmp" builder
       | SBinop (((A.String,_ )) as e, op, e2) ->
           if op == A.Add then
-                L.build_call sconcat_func [| (expr builder e); (expr builder e2)  |]
+                L.build_call sconcat_func [| (expr builder s_table e); (expr builder s_table e2)  |]
 	        "sconcat" builder
           else
                 raise (Failure "internal error: can only concatenate (+) strings")
       | SBinop (e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
+	  let e1' = expr builder s_table e1
+	  and e2' = expr builder s_table e2 in
 	  (match op with
 	    A.Add     -> L.build_add
 	  | A.Sub     -> L.build_sub
@@ -166,48 +171,48 @@ let translate functions =
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SAssign (s, e1, e2) -> (match e2 with 
-                               (_, SNoexpr) -> (let e' = expr builder e1 in 
-                                                ignore(L.build_store e' (lookup s) builder); e')
-                               | _ -> let e' = expr builder e2 in 
+                               (_, SNoexpr) -> (let e' = expr builder s_table e1 in 
+                                                ignore(L.build_store e' (lookup s s_table) builder); e')
+                               | _ -> let e' = expr builder s_table e2 in 
                                       let index = (match e1 with (* expr builder e in *)
-                                         (Int, _)          -> expr builder e1
+                                         (Int, _)          -> expr builder s_table e1
                                      (*| (Int, SLiteral l) -> L.const_int i64_t l May want to keep? *)
                                        | _                 -> raise(Failure("Semant.ml should have caught."))
                                       ) in
                                       let indices = 
                                         (Array.of_list [L.const_int i64_t 0; index]) in 
                                       let ptr =  
-                                        L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
+                                        L.build_in_bounds_gep (lookup s s_table) indices (s^"_ptr_") builder
                                       in L.build_store e' ptr builder
                                )
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
-	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
+	  L.build_call printf_func [| int_format_str ; (expr builder s_table e) |]
 	    "printf" builder
       | SCall ("printFloat", [e]) ->
-    L.build_call printf_func [| float_format_str ; (expr builder e) |]
+    L.build_call printf_func [| float_format_str ; (expr builder s_table e) |]
       "printf" builder
       | SCall ("printString", [e]) ->
-	  L.build_call printf_func [| string_format_str ; (expr builder e) |]
+	  L.build_call printf_func [| string_format_str ; (expr builder s_table e) |]
 	    "printf" builder
       | SCall ("printf", [e]) -> 
-    L.build_call printf_func [| float_format_str ; (expr builder e) |]
+    L.build_call printf_func [| float_format_str ; (expr builder s_table e) |]
       "printf" builder
       | SCall (f, args) ->
          let (fdef, fdecl) = StringMap.find f function_decls in
-	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
+	 let llargs = List.rev (List.map (expr builder s_table) (List.rev args)) in
 	 let result = (match fdecl.styp with 
                         A.Void -> ""
                       | _ -> f ^ "_result") in
          L.build_call fdef (Array.of_list llargs) result builder
       | SAccess (s, e) -> let index = (match e with (* expr builder e in *)
-                             (Int, _)          -> expr builder e
+                             (Int, _)          -> expr builder s_table e
                          (*| (Int, SLiteral l) -> L.const_int i64_t l  We might want to check this? *)
                            | _                 -> raise(Failure("This should have been caught by semant.ml"))
                           ) in
                           let indices = 
                             (Array.of_list [L.const_int i64_t 0; index]) in 
                           let ptr =  
-                            L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
+                            L.build_in_bounds_gep (lookup s s_table) indices (s^"_ptr_") builder
                           in L.build_load ptr (s^"_elem_") builder
       | _ -> raise (Failure("Only support Call and Integer Expressions currently.")) 
     in
@@ -225,28 +230,40 @@ let translate functions =
        the statement's successor (i.e., the next instruction will be built
        after the one generated by this call) *)
 
-    let rec stmt builder = function
-	SBlock sl -> List.fold_left stmt builder sl
-      | SExpr e -> ignore(expr builder e); builder 
+    let rec stmt s_table builder s1 = match s1 with
+	SBlock sl -> let add_local m (t, n) = 
+                       let local_var = L.build_alloca (ltype_of_typ t) n builder 
+                       in StringMap.add n local_var m 
+                     in
+                     let updated_table =  (List.fold_left add_local StringMap.empty (List.fold_left
+                                            (fun bind_list stmt ->
+                                              match stmt with
+                                                SBinding b -> b :: bind_list
+                                              | SBinding_Assign (b, _) -> b :: bind_list
+                                              | _ -> bind_list
+                                            ) [] sl)
+                                          ) :: s_table (*TODO: FIX LEAKING ON THE STACK?*)
+                                          in List.fold_left (stmt updated_table) builder sl
+      | SExpr e -> ignore(expr builder s_table e); builder 
       | SBinding (_, _) -> builder
-      | SBinding_Assign ((_, _), e) -> (expr builder e); builder
+      | SBinding_Assign ((_, _), e) -> (expr builder s_table e); builder
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder
                 (* Build return statement *)
-                | _ -> L.build_ret (expr builder e) builder );
+                | _ -> L.build_ret (expr builder s_table e) builder );
             builder
       | SIf (predicate, then_stmt, else_stmt) ->
-         let bool_val = expr builder predicate in
+         let bool_val = expr builder s_table predicate in
 	 let merge_bb = L.append_block context "merge" the_function in
          let build_br_merge = L.build_br merge_bb in (* partial function *)
 
 	 let then_bb = L.append_block context "then" the_function in
-	 add_terminal (stmt (L.builder_at_end context then_bb) then_stmt)
+	 add_terminal (stmt s_table (L.builder_at_end context then_bb) then_stmt)
 	   build_br_merge;
 
 	 let else_bb = L.append_block context "else" the_function in
-	 add_terminal (stmt (L.builder_at_end context else_bb) else_stmt)
+	 add_terminal (stmt s_table (L.builder_at_end context else_bb) else_stmt)
 	   build_br_merge;
 
 	 ignore(L.build_cond_br bool_val then_bb else_bb builder);
@@ -256,11 +273,11 @@ let translate functions =
 	  ignore(L.build_br pred_bb builder);
 
 	  let body_bb = L.append_block context "while_body" the_function in
-	  add_terminal (stmt (L.builder_at_end context body_bb) body)
+	  add_terminal (stmt s_table (L.builder_at_end context body_bb) body)
 	    (L.build_br pred_bb);
 
 	  let pred_builder = L.builder_at_end context pred_bb in
-	  let bool_val = expr pred_builder predicate in
+	  let bool_val = expr pred_builder s_table predicate in
 
 	  let merge_bb = L.append_block context "merge" the_function in
 	  ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
@@ -272,7 +289,7 @@ let translate functions =
     in
 
     (* Build the code for each statement in the function *)
-    let builder = stmt builder (SBlock fdecl.sbody) in
+    let builder = stmt outermost_func_scope builder (SBlock fdecl.sbody) in
 
     (* Add a return if the last block falls off the end *)
     add_terminal builder (match fdecl.styp with

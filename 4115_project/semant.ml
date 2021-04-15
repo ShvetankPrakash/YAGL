@@ -13,7 +13,7 @@ module StringMap = Map.Make(String)
 let check (stmts, funcs) =
   let main = 
      {
-       typ = Void;
+       typ = Int;
        fname = "main"; 
        formals = [];
        body = stmts
@@ -129,25 +129,27 @@ let check_function func =
     in  
 
     (* Build local symbol table of variables for this function *)
-    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
-                  StringMap.empty (func.formals @ extract_vdecls func.body )
+    let arg_symbols = [List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+                  StringMap.empty (func.formals)]
     in
 
     (* Return a variable from our local symbol table *)
-    let type_of_identifier s =
-      try StringMap.find s symbols
-      with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+    let rec type_of_identifier s symbol_tables_list = match symbol_tables_list with
+       last_map :: []        -> (try StringMap.find s last_map with Not_found -> raise (Failure ("undeclared identifier " ^ s)))
+     | head_map :: tail_maps -> (try StringMap.find s head_map with Not_found -> type_of_identifier s tail_maps)
+     | []                    -> raise(Failure("Internal Error: Symbol table not built."))
     in
+
     let type_of_attribute a = match a with
       "length" -> Int
     in
-    (* Check array sizes are all of type int *)
+    (* Check array sizes are all of type int *)(*
     let check_arrays (_ : string) (binds : bind list) =
        List.iter (function
            (Array(_, e), _) -> let rec is_int e' = match e' with 
                                  Literal(_)        -> true
                                | Binop(e1, _, e2) -> if (is_int e1) && (is_int e2) then true else false
-                               | Id(s)             -> let typ = type_of_identifier s in 
+                               | Id(s)             -> let typ = type_of_identifier s arg_symbols in (*TODO: FIX THIS ARG SYMBOLS*)
                                                                 (match typ with 
                                                                   Int -> true
                                                                 | _   -> false) 
@@ -155,9 +157,9 @@ let check_function func =
                                in let found_int = is_int e
                                in if found_int then () else raise(Failure("Size of array is not of type int."))
          | _ -> ()) binds;
-    in check_arrays "formals" func.formals; check_arrays "locals" (extract_vdecls func.body);
+    in check_arrays "formals" func.formals; check_arrays "locals" (extract_vdecls func.body);*)
     (* Return a semantically-checked expression, i.e., with a type *)
-    let rec expr = function
+    let rec expr ex1 s_table = match ex1 with
          Call(fname, args) as call -> 
           let fd = find_func fname in
           let param_length = List.length fd.formals in
@@ -168,7 +170,7 @@ let check_function func =
             (* TODO: IF we add globals then we can remove this... thoughts? *)
             raise (Failure ("Cannot call main otherwise recurse forever"))
           else let check_call (ft, _) e = 
-            let (et, e') = expr e in 
+            let (et, e') = expr e s_table in 
             let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
             in (check_assign ft et err, e')
@@ -178,11 +180,11 @@ let check_function func =
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
        | StrLit s -> (String, SStrLit s)
-       | Id s       -> (type_of_identifier s, SId s)
-       | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))
+       | Id s       -> (type_of_identifier s s_table, SId s)
+       | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a))
        | Binop(e1, op, e2) as e -> 
-          let (t1, e1') = expr e1 
-          and (t2, e2') = expr e2 in
+          let (t1, e1') = expr e1 s_table 
+          and (t2, e2') = expr e2 s_table in
           (* All binary operators require operands of the same type *)
           let same = t1 = t2 in
           (* Determine expression type based on operator and operand types *)
@@ -201,22 +203,22 @@ let check_function func =
           in (ty, SBinop((t1, e1'), op, (t2, e2')))       
         | Assign(var, e1, e2) as ex -> 
           let (rvalue, lt) = match e2 with 
-              Noexpr -> (e1, type_of_identifier var)
-            | _      -> let elem_typ = type_of_identifier var in 
+              Noexpr -> (e1, type_of_identifier var s_table)
+            | _      -> let elem_typ = type_of_identifier var s_table in 
                         ( match elem_typ  with 
                             Array(t, _) -> (e2, t)
                           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
                         )
           in
-            let (rt, _) = expr rvalue in
+            let (rt, _) = expr rvalue s_table in
             let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
               string_of_typ rt ^ " in " ^ string_of_expr ex
-            in (check_assign lt rt err, SAssign(var, expr e1, expr e2))
+            in (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table))
        | BoolLit b -> (Bool, SBoolLit b)
        | Access (s, e) -> 
-         let elem_typ = type_of_identifier s in 
+         let elem_typ = type_of_identifier s s_table in 
          ( match elem_typ  with 
-             Array(t, _) -> let e' = expr e in 
+             Array(t, _) -> let e' = expr e s_table in 
                                      (match e' with 
                                        (Int, _) -> (t, SAccess(s, e'))
                                      | (_, _)   -> raise(Failure("Can only access array element with int type."))
@@ -228,19 +230,19 @@ let check_function func =
        | Unop (_, _) -> raise (Failure("Unop ERROR")) 
     in
 
-    let check_bool_expr e = 
-      let (t', e') = expr e
+    let check_bool_expr e s_table = 
+      let (t', e') = expr e s_table
       and err = "expected Boolean expression in " ^ string_of_expr e
       in if t' != Bool then raise (Failure err) else (t', e') 
     in 
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
-    let rec check_stmt = function
-        Expr e -> SExpr (expr e)
-      | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
+    let rec check_stmt stmt symbol_table = match stmt with
+        Expr e -> SExpr (expr e symbol_table)
+      | If(p, b1, b2) -> SIf(check_bool_expr p symbol_table, check_stmt b1 symbol_table, check_stmt b2 symbol_table)
       | Bfs(_, _, _, _) -> raise (Failure "fail for")
-      | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
-      | Return e -> let (t, e') = expr e in
+      | While(p, s) -> SWhile(check_bool_expr p symbol_table, check_stmt s symbol_table)
+      | Return e -> let (t, e') = expr e symbol_table in
                 if t = func.typ then SReturn (t, e')
                 else raise (
                         Failure ("return gives " ^ string_of_typ t ^ ", but expected " ^
@@ -250,22 +252,27 @@ let check_function func =
       (* TODO: If we want scoping and declaring variables in a nested
        * block, then we cannot simply flatten                        *)
       | Block sl ->
-          let rec check_stmt_list = function
-              [Return _ as s] -> [check_stmt s]
+          (* Create new symbol table for this block's scope and add to head of outer scope symbol table *)
+          let updated_table = (List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+                  StringMap.empty (extract_vdecls sl)) :: symbol_table 
+          in  
+
+          let rec check_stmt_list s m = match s with
+              [Return _ as s] -> [check_stmt s m]
             | Return _ :: _   -> raise (Failure "nothing may follow a return")
-            | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
-            | s :: ss         -> check_stmt s :: check_stmt_list ss
+            | Block sl :: ss  ->print_string("Here"); check_stmt_list sl m; check_stmt_list ss m(*TODO: FIX? @ ss) Flatten blocks *)
+            | s :: ss         -> check_stmt s m :: check_stmt_list ss m
             | []              -> []
-          in SBlock(check_stmt_list sl)
+          in SBlock(check_stmt_list sl updated_table)
       | Binding (typ, id) -> SBinding (typ, id)
       | Binding_Assign ((typ, id), e) -> 
-                      SBinding_Assign ((typ, id), expr e);
+                      SBinding_Assign ((typ, id), expr e symbol_table);
   in 
 
   { styp = func.typ;
       sfname = func.fname;
       sformals = func.formals;
-      sbody = match check_stmt (Block func.body) with
+      sbody = match check_stmt (Block func.body) arg_symbols with
   SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
