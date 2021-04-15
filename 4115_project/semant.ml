@@ -13,7 +13,7 @@ module StringMap = Map.Make(String)
 let check (stmts, funcs) =
   let main = 
      {
-       typ = Void;
+       typ = Int;
        fname = "main"; 
        formals = [];
        body = stmts
