@@ -16,7 +16,7 @@ char *sconcat(char *s1, char *s2) {
 
 struct node {
 	int id;  // for hash table
-	char *val;
+	char* name;
 };
 
 struct graph {
@@ -230,11 +230,33 @@ struct edge *g_contain_e(struct graph *g, struct edge *ed) {
 }
 
 static int id = 0;
-struct node *make_node(char *val) {
+struct node *make_node(char *name) {
+
 	struct node *n = malloc(sizeof(struct node));
+
+	char *node_name = malloc(strlen(name) + 1);
+	strcpy(node_name, name);
+
 	n->id = id++;
-	n->val = val;
+	n->name = node_name;
 	return n;
+}
+
+char *update_node_name(struct node *n, char *new_name) {
+
+	free(n->name);
+
+	char *node_name = malloc(strlen(new_name) + 1);
+	strcpy(node_name, new_name);
+
+	n->id = id++;
+	n->name = node_name;
+
+	return n->name;
+} 
+
+void print_node(struct node *n) {
+	printf("%s\n", n->name);
 }
 
 void print_graph(struct graph *g) {
