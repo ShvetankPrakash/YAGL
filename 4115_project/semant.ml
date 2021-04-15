@@ -87,6 +87,7 @@ let check (stmts, funcs) =
                                                  ("printString", String);
                                                  ("printBool", Bool);
                                                  ("printFloat", Float);
+                                                 ("printChar", Char)
                                                  ("printNode", Node);
                                                  ("printGraph", Graph)
                                                ]
@@ -181,6 +182,7 @@ let check_function func =
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
+       | ChrLit c -> (Char, SChrLit c)
        | NodeLit (n, name) -> let name' = expr name in 
                 (match name' with
                         (String, _) -> (Node, SNodeLit (n, expr name))

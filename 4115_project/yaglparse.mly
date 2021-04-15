@@ -51,8 +51,8 @@ typ:
   | VOID   { Void   }
   | BOOL   { Bool   }
   | typ LBRAC expr RBRAC { Array($1, $3) }
+  | CHAR   { Char   }
 /*
-  | CHAR   { Void   }
   | EDGE   { Void   }
 */
 fdecl:
@@ -101,7 +101,7 @@ expr:
     LITERAL          { Literal($1)                       }
   | FLIT             { FLit($1)                          }
   | BLIT             { BoolLit($1)                       }
-  | CHRLIT           { Noexpr                            }
+  | CHRLIT           { ChrLit($1)                        }
   | STRLIT           { StrLit($1)                        }
   | ID               { Id($1)                            }
   | expr PLUS   expr { Binop($1, Add,   $3)              }
