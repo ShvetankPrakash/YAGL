@@ -147,11 +147,11 @@ void insert_node(struct graph *g, struct node *n) {
 	
 }
 char *node_to_string(struct node *n) {
-	int name_length = strlen(n->val);
+	int name_length = strlen(n->name);
 	int additional_space_safe = 30;
 	char *s = malloc(additional_space_safe 
 			+ name_length + 1);
-	sprintf(s, "(%d) : %s", n->id, n->val);
+	sprintf(s, "(%d) : %s", n->id, n->name);
 	return s;
 }
 char *edge_to_string(struct edge *e) {
@@ -281,7 +281,7 @@ void print_graph(struct graph *g) {
 			e = e->next_edge;
 		}
 	}
-	if (g->n_pos == 0)
+	if (g->e_pos == 0)
 		printf("There aren't any edges in this graph.\n");
 
 	printf("============ End Graph Print =============\n");

@@ -87,7 +87,7 @@ let check (stmts, funcs) =
                                                  ("printString", String);
                                                  ("printBool", Bool);
                                                  ("printFloat", Float);
-                                                 ("printNode", Node)
+                                                 ("printNode", Node);
                                                  ("printGraph", Graph)
                                                ]
   in
@@ -181,7 +181,11 @@ let check_function func =
           in (fd.typ, SCall(fname, args'))
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
-       | NodeLit (n, name) -> (Node, SNodeLit (n, expr name))
+       | NodeLit (n, name) -> let name' = expr name in 
+                (match name' with
+                        (String, _) -> (Node, SNodeLit (n, expr name))
+                        | _ -> raise (Failure "Node must be passed a String")
+                )
        | GraphLit e -> (Graph, SGraphLit e)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
@@ -195,6 +199,7 @@ let check_function func =
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
           | Add when same && t1 = String   -> String
+          | Add when t1 = Graph && t2 = Node -> Graph
           | Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal                  when same               -> Bool
           | Less | Greater

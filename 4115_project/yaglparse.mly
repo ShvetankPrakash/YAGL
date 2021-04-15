@@ -74,6 +74,12 @@ stmt_list:
   /* nothing */    { [] }
   | stmt_list stmt { $2::$1 }
 
+graph_stmts:
+    NODE ID LPAREN expr RPAREN SEMI         { Binding_Assign((Node, $2), 
+                                              Assign($2, NodeLit($2, $4), Noexpr)) }
+  | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
+                                              Assign($2, GraphLit($2), Noexpr)) }
+
 stmt:
     expr SEMI                               { Expr $1               }
   | RETURN expr_opt SEMI                    { Return $2             }
@@ -83,10 +89,7 @@ stmt:
   | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
                                             { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
-  | NODE ID LPAREN expr RPAREN SEMI         { Binding_Assign((Node, $2), 
-                                              Assign($2, NodeLit($2, $4), Noexpr)) }
-  | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
-                                              Assign($2, GraphLit($2), Noexpr)) }
+  | graph_stmts                             { $1                    }
   | typ ID SEMI                             { Binding($1, $2)       }
   | typ ID ASSIGN expr SEMI                 { Binding_Assign(($1, $2), Assign($2,$4,Noexpr)) }
 

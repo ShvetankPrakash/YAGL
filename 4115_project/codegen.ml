@@ -84,6 +84,9 @@ let translate functions =
   let make_graph_t : L.lltype =
           L.function_type (L.pointer_type graph_t)
           [| i32_t |] in
+  let insert_node_t : L.lltype =
+          L.function_type (L.pointer_type graph_t)
+          [| L.pointer_type graph_t; L.pointer_type node_t |] in
   let print_graph_t : L.lltype =
           L.function_type i32_t [| (L.pointer_type graph_t)|] in
   let sconcat_t : L.lltype =
@@ -91,6 +94,8 @@ let translate functions =
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
   let make_graph_func : L.llvalue =
       L.declare_function "make_graph" make_graph_t the_module in
+  let insert_node_func : L.llvalue =
+      L.declare_function "insert_node" insert_node_t the_module in
   let print_graph_func : L.llvalue =
       L.declare_function "print_graph" print_graph_t the_module in
   let sconcat_func : L.llvalue =
@@ -182,6 +187,17 @@ let translate functions =
       | SNodeLit (n, nodeName) -> 
             L.build_call make_node_func [| (expr builder nodeName) |]
             "make_node" builder
+      | SBinop ((A.Graph, _ ) as e1, op, e2) ->
+	  let e1' = expr builder e1
+	  and e2' = expr builder e2 in
+          (match e2 with
+                (A.Node, _) ->
+	                (match op with 
+                                A.Add -> L.build_call insert_node_func [| e1'; e2' |] "insert_node" builder
+                                | _ -> raise (Failure "Internal error: Semant should've caught")
+                        )
+                | _ -> raise (Failure "Internal error: Semant should've caught")
+          )
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
