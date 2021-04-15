@@ -26,13 +26,37 @@ let translate functions =
      we will generate code *)
   let the_module = L.create_module context "YAGL" in
 
+  (* Create Node struct type *)
+  let node = [| L.i32_type context;
+                L.pointer_type (L.i8_type context); |] in
+
+  let node_struct = L.struct_type context node in
+
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
   and float_t    = L.double_type context
   and i8_t       = L.i8_type     context
   and i1_t       = L.i1_type     context
   and i64_t      = L.i64_type    context
-  and void_t     = L.void_type   context in
+  and void_t     = L.void_type   context
+  in
+
+  (* Graph Types *)
+  let node_t     = L.struct_type context 
+                   [| i32_t; 
+                      L.pointer_type i1_t |]
+  and edge_t     = L.struct_type context 
+                   [| L.pointer_type (L.named_struct_type context "node_t");
+                      L.pointer_type (L.named_struct_type context "node_t"); 
+                      i32_t  |]
+  and edge_list_t = L.struct_type context 
+                    [| L.pointer_type (L.named_struct_type context "edge_t"); 
+                       L.pointer_type (L.named_struct_type context "edge_list_t") |]
+  and graph_t = L.struct_type context 
+                [| i32_t; i32_t; i32_t; 
+                   L.pointer_type (L.pointer_type (L.named_struct_type context "node_t")); 
+                   L.pointer_type (L.pointer_type (L.named_struct_type context "edge_list_t"))  |]
+  in
 
   (* Return the LLVM type for a YAGL type *)
   let rec ltype_of_typ = function
@@ -42,6 +66,8 @@ let translate functions =
     | A.Char         -> i8_t
     | A.Void         -> void_t
     | A.Bool         -> i1_t 
+    | A.Node         -> L.pointer_type node_t
+    | A.Graph        -> L.pointer_type graph_t
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
@@ -56,15 +82,40 @@ let translate functions =
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
+  let make_graph_t : L.lltype =
+          L.function_type (L.pointer_type graph_t)
+          [| i32_t |] in
+  let insert_node_t : L.lltype =
+          L.function_type (L.pointer_type graph_t)
+          [| L.pointer_type graph_t; L.pointer_type node_t |] in
+  let print_graph_t : L.lltype =
+          L.function_type i32_t [| (L.pointer_type graph_t)|] in
   let sconcat_t : L.lltype =
           L.function_type (L.pointer_type i8_t) 
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
+  let make_graph_func : L.llvalue =
+      L.declare_function "make_graph" make_graph_t the_module in
+  let insert_node_func : L.llvalue =
+      L.declare_function "insert_node" insert_node_t the_module in
+  let print_graph_func : L.llvalue =
+      L.declare_function "print_graph" print_graph_t the_module in
   let sconcat_func : L.llvalue =
       L.declare_function "sconcat" sconcat_t the_module in
   let strlen_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let strlen_func : L.llvalue = 
       L.declare_function "strlen" strlen_t the_module in    
+
+  (* Graph related calls *)
+  let make_node_t : L.lltype = 
+      L.var_arg_function_type (L.pointer_type node_t) [| L.pointer_type i8_t |] in
+  let make_node_func : L.llvalue = 
+      L.declare_function "make_node" make_node_t the_module in   
+  let print_node_t : L.lltype = 
+      L.var_arg_function_type i32_t [| L.pointer_type node_t |] in
+  let print_node_func : L.llvalue = 
+      L.declare_function "print_node" print_node_t the_module in   
+
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -79,7 +130,7 @@ let translate functions =
   
   (* Fill in the body of the given function *)
   let build_function_body fdecl =
-    let (the_function, _) = StringMap.find fdecl.sfname function_decls in
+    let (the_function, _) = StringMap.find fdecl.sfname function_decls in       
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
@@ -129,8 +180,26 @@ let translate functions =
 	SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
       | SId s   -> L.build_load (lookup s) s builder
-      | SAttr (s, "length") -> 
-          L.build_call strlen_func [| (expr builder s) |] "strlen" builder
+      | SAttr ((String, sId), "length") -> 
+            L.build_call strlen_func [| (expr builder (String, sId)) |] "strlen" builder
+   (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)
+                     
+      | SAttr (_, _) -> 
+            raise (Failure "unsupported attribute type") 
+      | SNodeLit (n, nodeName) -> 
+            L.build_call make_node_func [| (expr builder nodeName) |]
+            "make_node" builder
+      | SBinop ((A.Graph, _ ) as e1, op, e2) ->
+	  let e1' = expr builder e1
+	  and e2' = expr builder e2 in
+          (match e2 with
+                (A.Node, _) ->
+	                (match op with 
+                                A.Add -> L.build_call insert_node_func [| e1'; e2' |] "insert_node" builder
+                                | _ -> raise (Failure "Internal error: Semant should've caught")
+                        )
+                | _ -> raise (Failure "Internal error: Semant should've caught")
+          )
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 	  let e1' = expr builder e1
 	  and e2' = expr builder e2 in
@@ -168,6 +237,9 @@ let translate functions =
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SChrLit  c  -> L.const_int i8_t (Char.code c)
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
+      | SGraphLit g -> 
+                  L.build_call make_graph_func [| L.const_int i32_t 1 |]
+                  "make_graph" builder
       | SAssign (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder e1 in 
                                                 ignore(L.build_store e' (lookup s) builder); e')
@@ -183,6 +255,10 @@ let translate functions =
                                         L.build_in_bounds_gep (lookup s) indices (s^"_ptr_") builder
                                       in L.build_store e' ptr builder
                                )
+      | SCall ("printNode", [n]) ->
+    L.build_call print_node_func [| expr builder n |] "print_node" builder
+      | SCall ("printGraph", [g]) ->
+	  L.build_call print_graph_func [| expr builder g |] "print_graph" builder
       | SCall ("printInt", [e]) | SCall ("printBool", [e]) ->
 	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
 	    "printf" builder
@@ -235,7 +311,7 @@ let translate functions =
 	SBlock sl -> List.fold_left stmt builder sl
       | SExpr e -> ignore(expr builder e); builder 
       | SBinding (_, _) -> builder
-      | SBinding_Assign ((_, _), e) -> (expr builder e); builder
+      | SBinding_Assign ((_, _), e) -> expr builder e; builder;
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)
                 A.Void -> L.build_ret_void builder

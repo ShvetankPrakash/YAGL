@@ -25,7 +25,7 @@ let check (stmts, funcs) =
 
   in
 
- (*  *)
+ (* Extract the statements that are vdecls *)
   let extract_vdecls (stmts : stmt list) =
 
     List.fold_left (fun bind_list stmt -> 
@@ -88,6 +88,8 @@ let check (stmts, funcs) =
                                                  ("printBool", Bool);
                                                  ("printFloat", Float);
                                                  ("printChar", Char)
+                                                 ("printNode", Node);
+                                                 ("printGraph", Graph)
                                                ]
   in
 
@@ -140,7 +142,9 @@ let check_function func =
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
     let type_of_attribute a = match a with
-      "length" -> Int
+        "length" -> Int
+      | "name"   -> String
+      | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
     let check_arrays (_ : string) (binds : bind list) =
@@ -179,6 +183,12 @@ let check_function func =
        | Literal  l -> (Int, SLiteral l)
        | FLit f -> (Float, SFLit f)
        | ChrLit c -> (Char, SChrLit c)
+       | NodeLit (n, name) -> let name' = expr name in 
+                (match name' with
+                        (String, _) -> (Node, SNodeLit (n, expr name))
+                        | _ -> raise (Failure "Node must be passed a String")
+                )
+       | GraphLit e -> (Graph, SGraphLit e)
        | StrLit s -> (String, SStrLit s)
        | Id s       -> (type_of_identifier s, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s, SId s), a))
@@ -191,6 +201,7 @@ let check_function func =
           let ty = match op with
             Add | Sub | Mult | Div when same && t1 = Int   -> Int
           | Add when same && t1 = String   -> String
+          | Add when t1 = Graph && t2 = Node -> Graph
           | Add | Sub | Mult | Div when same && t1 = Float -> Float
           | Equal                  when same               -> Bool
           | Less | Greater
@@ -206,8 +217,15 @@ let check_function func =
               Noexpr -> (e1, type_of_identifier var)
             | _      -> let elem_typ = type_of_identifier var in 
                         ( match elem_typ  with 
-                            Array(t, _) -> (e2, t)
-                          | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
+                            Array(t, e) -> (match (e1, e) with
+                                           (Literal index, Literal arr_size) -> 
+                                                           if index > (arr_size - 1) 
+                                                           then raise(Failure("ERROR: Index out of bounds.")) 
+                                                           else (e2, t)
+                                            | (Unop _, _)  -> raise(Failure("ERROR: Index out of bounds.")) 
+                                            | _            -> (e2, t)  (* raise(Failure("TODO - extract value of e2 to catch out of bounds err")) *)
+                                           )
+                           | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
                         )
           in
             let (rt, _) = expr rvalue in
@@ -259,7 +277,7 @@ let check_function func =
             | s :: ss         -> check_stmt s :: check_stmt_list ss
             | []              -> []
           in SBlock(check_stmt_list sl)
-      | Binding (typ, id) -> SBinding (typ, id)
+      | Binding (typ, id) ->  SBinding (typ, id)
       | Binding_Assign ((typ, id), e) -> 
                       SBinding_Assign ((typ, id), expr e);
   in 
