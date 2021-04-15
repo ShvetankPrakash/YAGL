@@ -191,6 +191,20 @@ let check_function func =
                 )
        | GraphLit e -> (Graph, SGraphLit e)
        | StrLit s -> (String, SStrLit s)
+
+       | EdgeOp(e1, e2, op, e3, e4) as e ->
+          let (t1, e1') = expr e1 s_table
+          and (t2, e2') = expr e2 s_table
+          and (t3, e3') = expr e3 s_table
+          and (t4, e4') = expr e4 s_table in
+          let ty = match op with
+            Link when t1 = Graph && t2 = Node && t3 = Int && t4 = Node -> Graph
+          | _ -> raise (
+	      Failure ("illegal edge operator " ^
+                       string_of_typ t1 ^ ": " ^ string_of_typ t2 ^ " " ^ 
+                       string_of_op op ^ "{" ^ string_of_typ t3 ^ "} " ^
+                       string_of_typ t4 ^ " in " ^ string_of_expr e)) 
+          in (ty, SEdgeOp((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4'))) 
        | Id s       -> (type_of_identifier s s_table, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a))
        | Binop(e1, op, e2) as e -> 

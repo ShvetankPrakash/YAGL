@@ -68,6 +68,7 @@ let translate functions =
     | A.Bool         -> i1_t 
     | A.Node         -> L.pointer_type node_t
     | A.Graph        -> L.pointer_type graph_t
+    | A.Edge         -> L.pointer_type edge_t
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
@@ -85,16 +86,23 @@ let translate functions =
   let make_graph_t : L.lltype =
           L.function_type (L.pointer_type graph_t)
           [| i32_t |] in
+  let insert_edge_t : L.lltype = 
+          L.function_type (void_t) [| (L.pointer_type graph_t);
+                                      (L.pointer_type node_t);
+                                      i32_t;
+                                      (L.pointer_type node_t) |] in
   let insert_node_t : L.lltype =
           L.function_type (L.pointer_type graph_t)
           [| L.pointer_type graph_t; L.pointer_type node_t |] in
   let print_graph_t : L.lltype =
-          L.function_type i32_t [| (L.pointer_type graph_t)|] in
+          L.function_type i32_t [| (L.pointer_type graph_t)|] in 
   let sconcat_t : L.lltype =
           L.function_type (L.pointer_type i8_t) 
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
   let make_graph_func : L.llvalue =
       L.declare_function "make_graph" make_graph_t the_module in
+  let insert_edge_func : L.llvalue =
+      L.declare_function "insert_edge" insert_edge_t the_module in
   let insert_node_func : L.llvalue =
       L.declare_function "insert_node" insert_node_t the_module in
   let print_graph_func : L.llvalue =
@@ -184,6 +192,14 @@ let translate functions =
     let rec expr builder s_table ((_, e) : sexpr) = match e with
 	SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
+      | SEdgeOp (e1, e2, op, e3, e4) ->
+          let e1' = expr builder s_table e1
+          and e2' = expr builder s_table e2
+          and e3' = expr builder s_table e3
+          and e4' = expr builder s_table e4 in
+          (match op with
+            A.Link -> L.build_call
+          ) insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder 
       | SId s   -> L.build_load (lookup s s_table) s builder
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder

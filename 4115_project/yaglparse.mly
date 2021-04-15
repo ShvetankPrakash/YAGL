@@ -51,10 +51,9 @@ typ:
   | VOID   { Void   }
   | BOOL   { Bool   }
   | typ LBRAC expr RBRAC { Array($1, $3) }
+  | EDGE   { Edge   }
   | CHAR   { Char   }
-/*
-  | EDGE   { Void   }
-*/
+
 fdecl:
    typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
      { { typ = $1;
@@ -117,11 +116,15 @@ expr:
   | NOT expr         { Unop(Not, $2)                     }
   | ID ASSIGN expr   { Assign($1, $3, Noexpr)            }
   | ID LBRAC expr RBRAC ASSIGN expr { Assign($1, $3, $6) }
-  | ID COLON expr QMARK expr { Noexpr                    }
+  /*| ID COLON expr QMARK expr { Noexpr                    }*/
   | ID DOT ID        { Attr($1, $3)                      } 
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)             }  
+  | ID LPAREN args_opt RPAREN { Call($1, $3)             }
+  | expr COLON expr ARROW LBRACE expr RBRACE expr 
+                          { EdgeOp($1, $3, Link, $6, $8) }
+  /*| expr COLON expr ARROW expr
+                          { EdgeOp($1, $3, Link, 1, $5) }*/
 
 args_opt:
     /* nothing */ { [] }
