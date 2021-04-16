@@ -96,13 +96,35 @@ expr_opt: /* can be expr or nothing */
         /* epsilon/nothing */   { Noexpr }
       | expr                    { $1     }
 
+/*
+-    ID COLON ID ARROW BAR expr BAR ID   { EdgeOp(Id($1), Id($3), Link, $6, Id($8)) }
+-  | ID COLON ID ARROW LITERAL ID        { EdgeOp(Id($1), Id($3), Link, Literal($5), Id($6)) }
+-  | ID COLON ID ARROW ID ID             { EdgeOp(Id($1), Id($3), Link, Id($5), Id($6)) }
+-  | ID COLON ID ARROW ID                { EdgeOp(Id($1), Id($3), Link, Literal(1), Id($5)) }
+*/
+
 edge:
-    ID COLON ID ARROW BAR expr BAR ID   { EdgeOp(Id($1), Id($3), Link, $6, Id($8)) }
-  | ID COLON ID ARROW LITERAL ID        { EdgeOp(Id($1), Id($3), Link, Literal($5), Id($6)) }
-  | ID COLON ID ARROW ID ID             { EdgeOp(Id($1), Id($3), Link, Id($5), Id($6)) }
-  | ID COLON ID ARROW ID                { EdgeOp(Id($1), Id($3), Link, Literal(1), Id($5)) }
-  /*| edge ARROW LITERAL ID             { ChainedEdgeOp($1, Plus, $3, $4) }
-  | edge ARROW ID                       { ChainedEdgeOp($1, Plus, 1, $3) }*/
+    ID ARROW ID                         { [EdgeOp(Noexpr, Id($1), Link, Literal(1), Id($3))]     }
+  | ID ARROW LITERAL ID                 { [EdgeOp(Noexpr, Id($1), Link, Literal($3), Id($4))]    }
+  | ID ARROW ID ID                      { [EdgeOp(Noexpr, Id($1), Link, Id($3), Id($4))]         }
+  | ID ARROW BAR expr BAR ID            { [EdgeOp(Noexpr, Id($1), Link, $4, Id($6))]             }
+  | edge ARROW LITERAL ID               { EdgeOp(Noexpr, (match (List.hd($1)) with
+                                                EdgeOp(_,_,_,_,x) -> x
+                                              | _ -> raise (Failure "Error parsing edges.")), 
+                                          Link, Literal($3), Id($4))  :: $1                      } 
+  | edge ARROW ID ID                    { EdgeOp(Noexpr, (match (List.hd($1)) with
+                                                EdgeOp(_,_,_,_,x) -> x
+                                              | _ -> raise (Failure "Error parsing edges.")), 
+                                          Link, Id($3), Id($4))  :: $1                           } 
+  | edge ARROW ID                       { EdgeOp(Noexpr, (match (List.hd($1)) with
+                                                EdgeOp(_,_,_,_,x) -> x
+                                              | _ -> raise (Failure "Error parsing edges.")),
+                                          Link, Literal(1), Id($3)) :: $1                        }
+  | edge ARROW BAR expr BAR ID          { EdgeOp(Noexpr, (match (List.hd($1)) with
+                                                EdgeOp(_,_,_,_,x) -> x
+                                              | _ -> raise (Failure "Error parsing edges.")), 
+                                          Link, $4, Id($6))  :: $1                               } 
+
 
 expr:
     LITERAL          { Literal($1)                       }
@@ -129,10 +151,7 @@ expr:
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)             }
-  | edge {$1}/*ID COLON ID ARROW expr ID
-                          { EdgeOp(Id($1), Id($3), Link, $5, Id($6)) }*/
-  /*| ID COLON ID ARROW ID
-                          { EdgeOp(Id($1), Id($3), Link, 1, Id($5))  }*/
+  | ID COLON edge { EdgeList(Id($1), $3)}
 
 args_opt:
     /* nothing */ { [] }

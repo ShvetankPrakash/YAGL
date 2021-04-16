@@ -20,11 +20,12 @@ type expr =
   | Call of string * expr list
   | Attr of string * string
   | Access of string * expr
+  | EdgeList of expr * expr list
   | EdgeOp of expr * expr * op * expr * expr
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
-         | Node | Edge | Graph
+         | Node | Edge | Graph | Edges 
 
 type bind = typ * string
 
@@ -92,13 +93,11 @@ let rec string_of_expr = function
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Access(id, e) -> id ^ "[" ^ string_of_expr e ^ "]"
   | Noexpr -> ""
-  | EdgeOp(e1, e2, o, e3, e4) -> string_of_expr e1 ^ ": "
-    ^ string_of_expr e2 ^ " " ^ string_of_op o ^ "{" 
-    ^ string_of_expr e3 ^ "} " ^ string_of_expr e4
-(*  | ChainedEdgeOp(e1, o, e2, e3) -> string_of_expr e1 ^ " "
-    ^ string_of_op o ^ " " 
-    ^ string_of_expr e2 ^ " " ^ string_of_expr e3
-  | NodeOfGraph(e1, e2) -> "(" ^  e1 ^ ", " 
+  | EdgeOp(_, e2, o, e3, e4) -> string_of_expr e2 ^ " " ^ string_of_op o ^ "|" 
+    ^ string_of_expr e3 ^ "| " ^ string_of_expr e4
+  | EdgeList(e1, e2) -> string_of_expr e1 ^ ": " 
+  ^ (List.fold_left (fun s e -> s ^ (string_of_expr e)) "" e2)
+  (*| NodeOfGraph(e1, e2) -> "(" ^  e1 ^ ", " 
     ^ e2 ^ ")"
   *)
 
@@ -112,6 +111,7 @@ let rec string_of_typ = function
   | Node        -> "Node"
   | Graph       -> "Graph"
   | Edge        -> "Edge"
+  | Edges       -> "Edges"
   | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function
