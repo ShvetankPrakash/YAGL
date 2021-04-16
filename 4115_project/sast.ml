@@ -66,11 +66,19 @@ let rec string_of_sexpr (t, e) =
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SAccess(id, e) -> id ^ "[" ^ string_of_sexpr e ^ "]"
-  | SEdgeOp(_, e2, o, e3, e4) -> string_of_sexpr e2 ^ " " ^ string_of_op o ^ "{" 
-    ^ string_of_sexpr e3 ^ "} " ^ string_of_sexpr e4
-  | SEdgeList(e1, e2) -> string_of_sexpr e1 ^ ": " 
-  ^ (List.fold_left (fun s e -> s ^ (string_of_sexpr e)) "" e2)
   | SNoexpr -> ""
+  | SEdgeOp(_, e1, o, e3, e4) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ "|"
+        ^ string_of_sexpr e3 ^ "| " ^ string_of_sexpr e4
+  | SEdgeList(e1, e2) -> string_of_sexpr e1 ^ ": " 
+        ^ (List.fold_left (fun s e -> s ^ match e with
+                (_, SEdgeOp(_, e2, o, e3, _)) ->
+                        (string_of_sexpr e2 ^ " " ^ string_of_op o ^ "|" 
+                         ^ string_of_sexpr e3 ^ "| ")
+              | _ -> ""
+        ) "" (List.rev e2))
+        ^ match (List.hd e2) with
+                (_, SEdgeOp(_, _, _, _, e4)) -> string_of_sexpr e4
+              | _ -> ""
 				  ) ^ ")"				     
 
 let rec string_of_sstmt = function
