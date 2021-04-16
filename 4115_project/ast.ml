@@ -25,7 +25,7 @@ type expr =
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
-         | Node | Edge | Graph | Edges 
+         | Node | Edge| Graph 
 
 type bind = typ * string
 
@@ -119,7 +119,6 @@ let rec string_of_typ = function
   | Node        -> "Node"
   | Graph       -> "Graph"
   | Edge        -> "Edge"
-  | Edges       -> "Edges"
   | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
 
 let rec string_of_stmt = function

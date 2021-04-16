@@ -64,7 +64,6 @@ let translate functions =
     | A.Node         -> L.pointer_type node_t
     | A.Graph        -> L.pointer_type graph_t
     | A.Edge         -> L.pointer_type edge_t
-    | A.Edges        -> L.pointer_type edge_t
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
                          | Binop(_, _, _) -> raise(Failure("TODO"))
@@ -193,7 +192,7 @@ let translate functions =
       | SFLit f -> L.const_float_of_string float_t f
       | SEdgeList (e1, e2) ->
                       let _ = List.map (fun ele ->
-                        expr builder s_table ele) e2 in
+                        expr builder s_table ele) (List.rev e2) in
                       expr builder s_table e1
       | SEdgeOp (e1, e2, op, e3, e4) ->
           let e1' = expr builder s_table e1

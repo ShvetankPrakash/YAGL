@@ -196,10 +196,16 @@ let check_function func =
           let e2' = List.map (fun ele ->
                   match ele with
                         EdgeOp(_,y,z,q,r) -> expr (EdgeOp(e1, y,z,q,r)) s_table
-                      | _ -> raise (Failure "ERROR in semant for edgelist")
-                        ) e2 in
-          (Edges, SEdgeList((t1,e1'), 
-          e2'))
+                      | _ -> raise (Failure "ERROR in semant for edgelist. Illegal inner types.")
+              ) e2 in
+          let ty = match t1 with
+                Graph -> Graph
+              | _ -> raise(Failure ("illegal graph operator: " 
+                                    ^ string_of_typ t1  ^ " " 
+                                    ^ string_of_expr e1 
+                                    ^ ". Was expecting type Graph"))
+          in
+          (ty, SEdgeList((t1,e1'), e2'))
        | EdgeOp(e1, e2, op, e3, e4) as e ->
           let (t1, e1') = expr e1 s_table
           and (t2, e2') = expr e2 s_table
