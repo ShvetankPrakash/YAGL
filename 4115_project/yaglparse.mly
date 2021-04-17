@@ -108,6 +108,11 @@ edge:
   | ID ARROW LITERAL ID                 { [EdgeOp(Noexpr, Id($1), Link, Literal($3), Id($4))]    }
   | ID ARROW ID ID                      { [EdgeOp(Noexpr, Id($1), Link, Id($3), Id($4))]         }
   | ID ARROW BAR expr BAR ID            { [EdgeOp(Noexpr, Id($1), Link, $4, Id($6))]             }
+  | PLUS ID                             { [EdgeOp(Noexpr, Id($2), Add, Literal(1), Id($2))]    }
+  | edge PLUS ID                        { EdgeOp(Noexpr, (match (List.hd($1)) with
+                                                EdgeOp(_,_,_,_,x) -> x
+                                              | _ -> raise (Failure "Error parsing edges.")), 
+                                          Add, Literal(1), Id($3))  :: $1                      } 
   | edge ARROW LITERAL ID               { EdgeOp(Noexpr, (match (List.hd($1)) with
                                                 EdgeOp(_,_,_,_,x) -> x
                                               | _ -> raise (Failure "Error parsing edges.")), 

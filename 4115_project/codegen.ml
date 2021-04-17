@@ -201,9 +201,11 @@ let translate functions =
           and e4' = expr builder s_table e4 in
           (match op with
             A.Link -> L.build_call
+                      insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
+          | A.Add  -> L.build_call
+                      insert_node_func [| e1'; e4' |] "insert_node" builder
           | _ -> raise (Failure "This edge op is not implemented.")
           )
-          insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
       | SId s   -> L.build_load (lookup s s_table) s builder
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
