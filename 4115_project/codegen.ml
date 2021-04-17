@@ -200,12 +200,18 @@ let translate functions =
           and e3' = expr builder s_table e3
           and e4' = expr builder s_table e4 in
           (match op with
-            A.Link -> L.build_call
-                      insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
-          | A.Add  -> L.build_call
-                      insert_node_func [| e1'; e4' |] "insert_node" builder
+            A.Link      -> L.build_call
+                        insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
           | A.Sub  -> L.build_call
                       remove_node_func [| e1'; e4' |] "remove_node" builder
+          | A.RevLink   -> L.build_call
+                        insert_edge_func [| e1'; e4'; e3'; e2' |] "insert_edge" builder
+          | A.BiLink    -> ignore (L.build_call
+                        insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder);
+                            L.build_call
+                        insert_edge_func [| e1'; e4'; e3'; e2' |] "insert_edge" builder
+          | A.Add       -> L.build_call
+                        insert_node_func [| e1'; e4' |] "insert_node" builder
           | _ -> raise (Failure "This edge op is not implemented.")
           )
       | SId s   -> L.build_load (lookup s s_table) s builder

@@ -33,6 +33,8 @@ rule token = parse
 | ":"      { COLON }
 | "."      { DOT }
 | "->"     { ARROW }
+| "<-"     { REVARROW }
+| "<->"    { BIARROW }
 | "if"     { IF }
 | "else"   { ELSE }
 | "while"  { WHILE }

@@ -213,8 +213,10 @@ let check_function func =
           and (t4, e4') = expr e4 s_table in
           let ty = match op with
             Link when t2 = Node && t3 = Int && t4 = Node -> Graph
-          | Add  when t2 = Node && t3 = Int && t4 = Node -> Graph
+          | RevLink when t2 = Node && t3 = Int && t4 = Node -> Graph
+          | BiLink when t2 = Node && t3 = Int && t4 = Node -> Graph
           | Sub  when t2 = Node && t3 = Int && t4 = Node -> Graph
+          | Add  when t2 = Node && t3 = Int && t4 = Node -> Graph
           | _ -> raise (
 	      Failure ("illegal graph operator " ^
                        string_of_typ t2 ^ " " ^ 

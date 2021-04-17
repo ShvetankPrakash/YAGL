@@ -1,7 +1,7 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
 type op = Add | Sub | Mult | Div | Equal | Less | Greater |
-          And | Or  | Link(* | Arrow | Colon *)
+          And | Or  | Link | RevLink | BiLink(* | Arrow | Colon *)
 
 type uop = Neg | Not
 
@@ -61,6 +61,8 @@ let string_of_op = function
   | And -> "&&"
   | Or -> "||"
   | Link -> "->"
+  | RevLink -> "<-"
+  | BiLink -> "<->"
   (*
   | Arrow -> "->"
   | Colon -> ":"
