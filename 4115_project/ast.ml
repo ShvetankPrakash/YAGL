@@ -97,9 +97,10 @@ let rec string_of_expr = function
         ^ string_of_expr e3 ^ "| " ^ string_of_expr e4
   | EdgeList(e1, e2) -> string_of_expr e1 ^ ": " 
         ^ (List.fold_left (fun s e -> s ^ match e with
-                EdgeOp(_, e1, o, e3, _) ->
-                        (string_of_expr e1 ^ " " ^ string_of_op o ^ "|" 
+                EdgeOp(_, e1, o, e3, e4) -> (match o with
+                        Link -> (string_of_expr e1 ^ " " ^ string_of_op o ^ "|" 
                          ^ string_of_expr e3 ^ "| ")
+                      | _ -> "[" ^ string_of_op o ^ " " ^ string_of_expr e4 ^ "],  ")
               | _ -> ""
         ) "" (List.rev e2))
         ^ match (List.hd e2) with

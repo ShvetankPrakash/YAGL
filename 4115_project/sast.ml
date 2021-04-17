@@ -71,9 +71,10 @@ let rec string_of_sexpr (t, e) =
         ^ string_of_sexpr e3 ^ "| " ^ string_of_sexpr e4
   | SEdgeList(e1, e2) -> string_of_sexpr e1 ^ ": " 
         ^ (List.fold_left (fun s e -> s ^ match e with
-                (_, SEdgeOp(_, e2, o, e3, _)) ->
-                        (string_of_sexpr e2 ^ " " ^ string_of_op o 
+                (_, SEdgeOp(_, e2, o, e3, e4)) -> (match o with
+                        Link -> (string_of_sexpr e2 ^ " " ^ string_of_op o 
                          ^ string_of_sexpr e3 ^ " ")
+                      | _ -> "[" ^ string_of_op o ^ " " ^ string_of_sexpr e4 ^ "] ")
               | _ -> ""
         ) "" (List.rev e2))
         ^ match (List.hd e2) with

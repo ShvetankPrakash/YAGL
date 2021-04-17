@@ -236,7 +236,7 @@ void remove_node(struct graph *g, struct node *n) {
 		if (curr->id == n->id)
 			break;
 	}
-	while (c + 2 < g->n_pos) {
+	while (c + 1 < g->n_pos) {
 		struct node *curr = g->nodes[c];
 		next = g->nodes[c+1];
 		memcpy(curr, next, sizeof(*curr));

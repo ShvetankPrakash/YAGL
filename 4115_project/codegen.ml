@@ -204,6 +204,8 @@ let translate functions =
                       insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
           | A.Add  -> L.build_call
                       insert_node_func [| e1'; e4' |] "insert_node" builder
+          | A.Sub  -> L.build_call
+                      remove_node_func [| e1'; e4' |] "remove_node" builder
           | _ -> raise (Failure "This edge op is not implemented.")
           )
       | SId s   -> L.build_load (lookup s s_table) s builder

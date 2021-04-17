@@ -1,1 +1,1 @@
-Fatal error: exception Failure("illegal edge operator String ->{int} Node in s_james ->|1| tank")
+Fatal error: exception Failure("illegal graph operator String ->{int} Node in s_james ->|1| tank")

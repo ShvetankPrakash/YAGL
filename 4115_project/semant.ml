@@ -214,8 +214,9 @@ let check_function func =
           let ty = match op with
             Link when t2 = Node && t3 = Int && t4 = Node -> Graph
           | Add  when t2 = Node && t3 = Int && t4 = Node -> Graph
+          | Sub  when t2 = Node && t3 = Int && t4 = Node -> Graph
           | _ -> raise (
-	      Failure ("illegal edge operator " ^
+	      Failure ("illegal graph operator " ^
                        string_of_typ t2 ^ " " ^ 
                        string_of_op op ^ "{" ^ string_of_typ t3 ^ "} " ^
                        string_of_typ t4 ^ " in " ^ string_of_expr e)) 
