@@ -19,7 +19,7 @@ Node michael2("Michael2");
 
 
 /* Add people to Facebook's network */
-fb: + adam + james + jack + tank
+fb: + adam + james + jack + tank;
 
 /* Add edges between people to make them friends */
 fb: adam <-> james <-> jack, tank <-> jack, tank <-> adam;                   /* Facebook friends is a bidirectional relationship */
@@ -56,12 +56,11 @@ printGraph(ln);
 
 /* TAKE THINGS FROM BELOW AND IMPLEMENT TO GET BFS WORKING */
 
-
 /* Find friends of friends */
-bfs(fb, james, 2);           /* Should find tank */
+/*bfs(fb, james, 2); */          /* Should find tank */
 
 
-void bfs(Graph g, Node vertex, int depth){
+/*void bfs(Graph g, Node vertex, int depth){
       reset(g);
       bfs_helper(g, vertex, depth);
 }
@@ -72,9 +71,9 @@ void bfs_helper(Graph g, Node vertex, int depth){
        return;
    }
    vertex.visited = true;
-
+*/
    /* Do whatever you want to the vertex */
-   printNode(vertex);
+  /* printNode(vertex);
 
    int size = get_num_neighbors(g, vertex);
    Node[size] neighbors = get_neighbors(g, vertex);
@@ -95,4 +94,4 @@ void reset(Graph g) {
       current.visited = false;
       current.curr_dist = 0;
     }
-}
+}*/
