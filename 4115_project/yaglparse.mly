@@ -35,6 +35,7 @@ open Ast
 %right NOT
 %left QMARK
 %left LBRAC 
+%left COMMA
 %left DOT
 
 %%
@@ -114,7 +115,7 @@ biarrow:
                                         { [EdgeOpBi(Noexpr, Id($1), BiLink, Literal(1), Id($6), $3)]     }
 
 edge:
-    edge LAND edge                      { $3 @ $1                                                }
+    edge COMMA edge                      { $3 @ $1                                                }
   /* Base Cases */
   | ID ARROW lit_id_expr ID             { [EdgeOp(Noexpr, Id($1), Link, $3, Id($4))]             }
   | ID ARROW ID                         { [EdgeOp(Noexpr, Id($1), Link, Literal(1), Id($3))]     }
