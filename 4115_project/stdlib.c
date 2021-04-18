@@ -41,6 +41,7 @@ struct edge {
 	struct node *from_node;
 	struct node *to_node;
 	int val;
+	int deleted; // 0 is no 1 is yes
 };
 
 struct edge_list {
@@ -64,6 +65,7 @@ struct edge *make_edge(struct node *from, struct node *to, int v) {
 	edge->from_node = from;
 	edge->to_node = to;
 	edge->val = v;
+	edge->deleted = 0;
 	return edge;
 }
 
@@ -83,6 +85,7 @@ void insert_edge(struct graph *g, struct node *from, int v, struct node *to) {
 			struct edge *edge = at_e->edge;
 			if (edge && edge->from_node && edge->from_node->id == from_id) {
 				pos = e;
+				edge->deleted = 0; // mark undeleted
 			}
 		}
 	}
@@ -188,7 +191,8 @@ void remove_edge(struct graph *g, struct node *from, struct node *to) {
 			struct edge_list *next = e->next_edge;
 			if (edge && edge->to_node && edge->from_node && 
 			    edge->to_node->id == to->id && edge->from_node->id == from->id) {
-				if (prev) {
+				edge->deleted = 1;
+				/*if (prev) {
 					prev->next_edge = next;
 				} else if (next) {
 					g->edges[i] = next;
@@ -201,6 +205,8 @@ void remove_edge(struct graph *g, struct node *from, struct node *to) {
 				}
 				free(e);
 				return;
+			}*/
+
 			}
 			prev = e;
 			e = next;
@@ -230,16 +236,14 @@ void remove_node(struct graph *g, struct node *n) {
 
 	// Second remove node
 	int c = 0;
-	struct node *next;
-	for ( ; c < g->n_pos; c++) {
+	for (c ; c < g->n_pos; c++) {
 		struct node *curr = g->nodes[c];
 		if (curr->id == n->id)
 			break;
 	}
+
 	while (c + 1 < g->n_pos) {
-		struct node *curr = g->nodes[c];
-		next = g->nodes[c+1];
-		memcpy(curr, next, sizeof(*curr));
+		memcpy(g->nodes + c, g->nodes + c+1, sizeof(g->nodes[c+1]));
 		c++;
 	}
 	struct node *curr = g->nodes[g->n_pos - 1];
@@ -264,7 +268,7 @@ int g_contain_n(struct graph *g, struct node *n) {
 	int on = 0;
 	while (on < g->n_pos) {
 		struct node *x = g->nodes[on++];
-		if (x->id == n->id)
+		if (x->id == n->id) 
 			return 1;
 	}
 	return 0;
@@ -327,16 +331,20 @@ void print_graph(struct graph *g) {
 		printf("There aren't any nodes in this graph.\n");
 	printf("\n\n");
 	printf("Edges:\n");
+	int printed = 0;
 	for (int n = 0; n < g->e_pos; n++) {
 		struct edge_list *e = g->edges[n];
 		int nullfd = open("/dev/random", O_WRONLY);
 		while (!(write(nullfd, e, sizeof(e)) < 0)) {
 			struct edge *edge = e->edge;
-			printf("%s\n", edge_to_string(edge));
+			if (edge->deleted == 0) {
+				printed ++;
+				printf("%s\n", edge_to_string(edge));
+			}
 			e = e->next_edge;
 		}
 	}
-	if (g->e_pos == 0)
+	if (printed == 0)
 		printf("There aren't any edges in this graph.\n");
 
 	printf("============ End Graph Print =============\n");
