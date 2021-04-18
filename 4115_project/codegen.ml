@@ -194,6 +194,16 @@ let translate functions =
                       let _ = List.map (fun ele ->
                         expr builder s_table ele) (List.rev e2) in
                       expr builder s_table e1
+      | SEdgeOpBi (e1, e2, _, e3, e4, e5) ->
+          let e1' = expr builder s_table e1
+          and e2' = expr builder s_table e2
+          and e3' = expr builder s_table e3
+          and e4' = expr builder s_table e4 
+          and e5' = expr builder s_table e5 in
+                        ignore (L.build_call
+                        insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder);
+                        L.build_call
+                        insert_edge_func [| e1'; e4'; e5'; e2' |] "insert_edge" builder
       | SEdgeOp (e1, e2, op, e3, e4) ->
           let e1' = expr builder s_table e1
           and e2' = expr builder s_table e2

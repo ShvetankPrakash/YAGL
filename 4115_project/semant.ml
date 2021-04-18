@@ -196,6 +196,7 @@ let check_function func =
           let e2' = List.map (fun ele ->
                   match ele with
                         EdgeOp(_,y,z,q,r) -> expr (EdgeOp(e1, y,z,q,r)) s_table
+                      | EdgeOpBi(_,y,z,q,r,x) -> expr (EdgeOpBi(e1, y,z,q,r,x)) s_table
                       | _ -> raise (Failure "ERROR in semant for edgelist. Illegal inner types.")
               ) e2 in
           let ty = match t1 with
@@ -206,6 +207,24 @@ let check_function func =
                                     ^ ". Was expecting type Graph"))
           in
           (ty, SEdgeList((t1,e1'), e2'))
+       | EdgeOpBi(e1, e2, op, e3, e4,e5) as e ->
+          let (t1, e1') = expr e1 s_table
+          and (t2, e2') = expr e2 s_table
+          and (t3, e3') = expr e3 s_table
+          and (t5, e5') = expr e5 s_table
+          and (t4, e4') = expr e4 s_table in
+          let ty = match op with
+            Link when t2 = Node && t3 = Int && t4 = Node && t5 = Int -> Graph
+          | RevLink when t2 = Node && t3 = Int && t4 = Node  && t5 = Int -> Graph
+          | BiLink when t2 = Node && t3 = Int && t4 = Node  && t5 = Int -> Graph
+          | Sub  when t2 = Node && t3 = Int && t4 = Node  && t5 = Int -> Graph
+          | Add  when t2 = Node && t3 = Int && t4 = Node  && t5 = Int -> Graph
+          | _ -> raise (
+	      Failure ("illegal graph operator " ^
+                       string_of_typ t2 ^ " " ^ 
+                       string_of_op op ^ "{" ^ string_of_typ t3 ^ "} " ^
+                       string_of_typ t4 ^ " in " ^ string_of_expr e)) 
+          in (ty, SEdgeOpBi((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4'), (t5, e5')))
        | EdgeOp(e1, e2, op, e3, e4) as e ->
           let (t1, e1') = expr e1 s_table
           and (t2, e2') = expr e2 s_table

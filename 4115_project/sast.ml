@@ -20,6 +20,7 @@ and sx =
   | SAccess of string * sexpr
   | SEdgeList of sexpr * sexpr list
   | SEdgeOp of sexpr * sexpr * op * sexpr * sexpr
+  | SEdgeOpBi of sexpr * sexpr * op * sexpr * sexpr * sexpr
   | SNoexpr
 
 type sstmt =
@@ -67,6 +68,8 @@ let rec string_of_sexpr (t, e) =
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SAccess(id, e) -> id ^ "[" ^ string_of_sexpr e ^ "]"
   | SNoexpr -> ""
+  | SEdgeOpBi(_, e1, o, e3, e4, e5) -> string_of_sexpr e1 ^ " " ^ string_of_sexpr e5 ^ string_of_op o ^ "|"
+        ^ string_of_sexpr e3 ^ "| " ^ string_of_sexpr e4
   | SEdgeOp(_, e1, o, e3, e4) -> string_of_sexpr e1 ^ " " ^ string_of_op o ^ "|"
         ^ string_of_sexpr e3 ^ "| " ^ string_of_sexpr e4
   | SEdgeList(e1, e2) -> string_of_sexpr e1 ^ ": " 
@@ -75,10 +78,14 @@ let rec string_of_sexpr (t, e) =
                         Link -> (string_of_sexpr e2 ^ " " ^ string_of_op o 
                          ^ string_of_sexpr e3 ^ " ")
                       | _ -> "[" ^ string_of_op o ^ " " ^ string_of_sexpr e4 ^ "] ")
+              |  (_, SEdgeOpBi(_, e2, o, e3, _, e5)) ->
+                        (string_of_sexpr e2 ^ " " ^ string_of_sexpr e5 ^ string_of_op o 
+                         ^ string_of_sexpr e3 ^ " ")
               | _ -> ""
         ) "" (List.rev e2))
         ^ match (List.hd e2) with
                 (_, SEdgeOp(_, _, _, _, e4)) -> string_of_sexpr e4
+              | (_, SEdgeOpBi(_, _, _, _, e4, _)) -> string_of_sexpr e4
               | _ -> ""
 				  ) ^ ")"				     
 
