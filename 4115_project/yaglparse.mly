@@ -99,13 +99,6 @@ expr_opt: /* can be expr or nothing */
         /* epsilon/nothing */   { Noexpr }
       | expr                    { $1     }
 
-/*
--    ID COLON ID ARROW BAR expr BAR ID   { EdgeOp(Id($1), Id($3), Link, $6, Id($8)) }
--  | ID COLON ID ARROW LITERAL ID        { EdgeOp(Id($1), Id($3), Link, Literal($5), Id($6)) }
--  | ID COLON ID ARROW ID ID             { EdgeOp(Id($1), Id($3), Link, Id($5), Id($6)) }
--  | ID COLON ID ARROW ID                { EdgeOp(Id($1), Id($3), Link, Literal(1), Id($5)) }
-*/
-
 biarrow:
     ID BIARROW ID                       { [EdgeOpBi(Noexpr, Id($1), BiLink, Literal(1), Id($3), Literal(1))] }
   | ID BIARROW lit_id_expr ID           { [EdgeOpBi(Noexpr, Id($1), BiLink, $3, Id($4), Literal(1))]     }
