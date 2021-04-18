@@ -7,7 +7,7 @@ open Ast
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW REVARROW BIARROW COLON DOT QMARK
-%token NOT EQ LT GT AND OR BAR
+%token NOT EQ LT GT AND OR BAR LAND
 %token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
 %token <bool> BLIT
@@ -26,7 +26,8 @@ open Ast
 %left AND
 %left EQ COLON
 %left LT GT
-%left ARROW
+%left ARROW REVARROW BIARROW
+%left LAND
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT
@@ -104,8 +105,9 @@ expr_opt: /* can be expr or nothing */
 */
 
 edge:
+    edge LAND edge                      { $3 @ $1                                                  }
   /* Base Cases */
-    ID ARROW lit_id_expr ID             { [EdgeOp(Noexpr, Id($1), Link, $3, Id($4))]               }
+  | ID ARROW lit_id_expr ID             { [EdgeOp(Noexpr, Id($1), Link, $3, Id($4))]               }
   | ID ARROW ID                         { [EdgeOp(Noexpr, Id($1), Link, Literal(1), Id($3))]       }
 
   | ID REVARROW ID                      { [EdgeOp(Noexpr, Id($1), RevLink, Literal(1), Id($3))]    }
@@ -124,12 +126,10 @@ edge:
                                               | _ -> raise (Failure "Error parsing edges.")), 
                                           Add, Literal(1), Id($3))  :: $1                      } 
 
-
   | edge MINUS ID                       { EdgeOp(Noexpr, (match (List.hd($1)) with
                                                 EdgeOp(_,_,_,_,x) -> x
                                               | _ -> raise (Failure "Error parsing edges.")), 
                                           Sub, Literal(1), Id($3))  :: $1                        } 
-
 
   | edge ARROW ID                       { EdgeOp(Noexpr, (match (List.hd($1)) with
                                                 EdgeOp(_,_,_,_,x) -> x
@@ -140,8 +140,6 @@ edge:
                                               | _ -> raise (Failure "Error parsing edges.")), 
                                           Link, $3, Id($4))  :: $1                               } 
 
-
-
   | edge REVARROW ID                    { EdgeOp(Noexpr, (match (List.hd($1)) with
                                                 EdgeOp(_,_,_,_,x) -> x
                                               | _ -> raise (Failure "Error parsing edges.")),
@@ -150,9 +148,6 @@ edge:
                                                 EdgeOp(_,_,_,_,x) -> x
                                               | _ -> raise (Failure "Error parsing edges.")), 
                                           RevLink, $3, Id($4))  :: $1                            } 
-
-
-
 
   | edge BIARROW ID                     { EdgeOp(Noexpr, (match (List.hd($1)) with
                                                 EdgeOp(_,_,_,_,x) -> x
