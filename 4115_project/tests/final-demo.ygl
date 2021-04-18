@@ -1,0 +1,98 @@
+/* Social Media Application */
+
+Graph fb;        /* Facebook  */
+Graph tw;        /* Twitter   */
+Graph ln;        /* LinkedIn  */
+
+/* People */
+Node adam("Adam");
+Node james("Jamie");                                                         /* Typo on purpose for demonstration later */
+Node jack("Jack");
+Node tank("Shvetank");
+Node edwards("Edwards");
+Node tiffany("Tiffany");
+Node buehler("Buehler");
+Node michael1("Michael1");
+Node michael2("Michael2");
+
+
+
+
+/* Add people to Facebook's network */
+fb: + adam + james + jack + tank
+
+/* Add edges between people to make them friends */
+fb: adam <-> james <-> jack, tank <-> jack, tank <-> adam;                   /* Facebook friends is a bidirectional relationship */
+
+printString("Facebook's Network");
+printGraph(fb);
+
+
+
+
+/* Add people to Twitter's network and edges between them to add follwers */
+tw: + edwards + michael1 -> edwards,     /* Twitter followers is a one directional relationship (not required to follow back) */ 
+    + michael2 + tank <- edwards;        /* Nodes can be in multiple graphs */   
+
+printString("Twitter's Network");
+printGraph(tw);
+
+
+
+
+/* Add people to LinkedIn's graphs and edges between people to make connections, LinkedIn connections are bidirectional */
+ln: + tiffany + buehler + james + edwards + michael1 + michael2 + adam + tank <-> james <-> adam <-> edwards <-> michael1 <-> michael2 <-> tiffany <-> edwards,
+    + jack, buehler <-> james <-> jack;
+
+printString("LinkedIn's Network");
+printGraph(ln);
+
+/* Delete the random people from LinkedIn since they chose to delete their accounts */
+ln: - tiffany - buehler - michael2 - michael1;
+
+printString("LinkedIn's Network");
+printGraph(ln);
+
+
+/* TAKE THINGS FROM BELOW AND IMPLEMENT TO GET BFS WORKING */
+
+
+/* Find friends of friends */
+bfs(fb, james, 2);           /* Should find tank */
+
+
+void bfs(Graph g, Node vertex, int depth){
+      reset(g);
+      bfs_helper(g, vertex, depth);
+}
+
+
+void bfs_helper(Graph g, Node vertex, int depth){
+   if (vertex.visted == true) {
+       return;
+   }
+   vertex.visited = true;
+
+   /* Do whatever you want to the vertex */
+   printNode(vertex);
+
+   int size = get_num_neighbors(g, vertex);
+   Node[size] neighbors = get_neighbors(g, vertex);
+   int curr = 0;
+   while (curr < size) {
+      neighbors[curr].curr_dist = vertex.curr_dist + 1;
+      bfs_helper(g, neighbors[curr], depth);
+      curr = curr + 1;
+   }
+}
+
+void reset(Graph g) {
+    int size = get_size(g);
+    Node[size] nodes = g.nodes;
+    int curr = 0;
+    while (curr < size) {
+      Node current = nodes[curr];
+      current.visited = false;
+      current.curr_dist = 0;
+    }
+}
