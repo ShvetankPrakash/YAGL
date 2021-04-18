@@ -5,8 +5,8 @@ Node n2("e");
 Node n3("l");
 Node n4("o");
 
-g: + n + n2 <-> n & + n3 <-> n2 & n3 <-> n & + n4 <-> n3
-   & n4 <-> n2 & n4 <-> n;
+g: + n + n2 <-> n, + n3 <-> n2, n3 <-> n, + n4 <-> n3,
+     n4 <-> n2, n4 <-> n;
 
 /* equivalent to:
 
