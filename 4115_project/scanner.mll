@@ -27,12 +27,15 @@ rule token = parse
 | '<'      { LT }
 | ">"      { GT }
 | "&&"     { AND }
+| "&"      { LAND }
 | "||"     { OR }
 | "|"      { BAR }
 | "!"      { NOT }
 | ":"      { COLON }
 | "."      { DOT }
 | "->"     { ARROW }
+| "<-"     { REVARROW }
+| "<->"    { BIARROW }
 | "if"     { IF }
 | "else"   { ELSE }
 | "while"  { WHILE }

@@ -190,16 +190,40 @@ let translate functions =
     let rec expr builder s_table ((_, e) : sexpr) = match e with
 	SLiteral i  -> L.const_int i32_t i
       | SFLit f -> L.const_float_of_string float_t f
+      | SEdgeList (e1, e2) ->
+                      let _ = List.map (fun ele ->
+                        expr builder s_table ele) (List.rev e2) in
+                      expr builder s_table e1
+      | SEdgeOpBi (e1, e2, _, e3, e4, e5) ->
+          let e1' = expr builder s_table e1
+          and e2' = expr builder s_table e2
+          and e3' = expr builder s_table e3
+          and e4' = expr builder s_table e4 
+          and e5' = expr builder s_table e5 in
+                        ignore (L.build_call
+                        insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder);
+                        L.build_call
+                        insert_edge_func [| e1'; e4'; e5'; e2' |] "insert_edge" builder
       | SEdgeOp (e1, e2, op, e3, e4) ->
           let e1' = expr builder s_table e1
           and e2' = expr builder s_table e2
           and e3' = expr builder s_table e3
           and e4' = expr builder s_table e4 in
           (match op with
-            A.Link -> L.build_call
+            A.Link      -> L.build_call
+                        insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
+          | A.Sub  -> L.build_call
+                      remove_node_func [| e1'; e4' |] "remove_node" builder
+          | A.RevLink   -> L.build_call
+                        insert_edge_func [| e1'; e4'; e3'; e2' |] "insert_edge" builder
+          | A.BiLink    -> ignore (L.build_call
+                        insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder);
+                            L.build_call
+                        insert_edge_func [| e1'; e4'; e3'; e2' |] "insert_edge" builder
+          | A.Add       -> L.build_call
+                        insert_node_func [| e1'; e4' |] "insert_node" builder
           | _ -> raise (Failure "This edge op is not implemented.")
           )
-          insert_edge_func [| e1'; e2'; e3'; e4' |] "insert_edge" builder
       | SId s   -> L.build_load (lookup s s_table) s builder
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder

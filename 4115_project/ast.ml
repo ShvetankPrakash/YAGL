@@ -1,7 +1,7 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
 type op = Add | Sub | Mult | Div | Equal | Less | Greater |
-          And | Or  | Link(* | Arrow | Colon *)
+          And | Or  | Link | RevLink | BiLink(* | Arrow | Colon *)
 
 type uop = Neg | Not
 
@@ -20,11 +20,13 @@ type expr =
   | Call of string * expr list
   | Attr of string * string
   | Access of string * expr
+  | EdgeList of expr * expr list
   | EdgeOp of expr * expr * op * expr * expr
+  | EdgeOpBi of expr * expr * op * expr * expr * expr
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
-         | Node | Edge | Graph
+         | Node | Edge| Graph 
 
 type bind = typ * string
 
@@ -60,6 +62,8 @@ let string_of_op = function
   | And -> "&&"
   | Or -> "||"
   | Link -> "->"
+  | RevLink -> "<-"
+  | BiLink -> "<->"
   (*
   | Arrow -> "->"
   | Colon -> ":"
@@ -92,13 +96,26 @@ let rec string_of_expr = function
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Access(id, e) -> id ^ "[" ^ string_of_expr e ^ "]"
   | Noexpr -> ""
-  | EdgeOp(e1, e2, o, e3, e4) -> string_of_expr e1 ^ ": "
-    ^ string_of_expr e2 ^ " " ^ string_of_op o ^ "{" 
-    ^ string_of_expr e3 ^ "} " ^ string_of_expr e4
-(*  | ChainedEdgeOp(e1, o, e2, e3) -> string_of_expr e1 ^ " "
-    ^ string_of_op o ^ " " 
-    ^ string_of_expr e2 ^ " " ^ string_of_expr e3
-  | NodeOfGraph(e1, e2) -> "(" ^  e1 ^ ", " 
+  | EdgeOpBi(_, e1, o, e3, e4, e5) -> string_of_expr e1 ^ " "^ string_of_expr e5 ^ string_of_op o ^ "|" 
+        ^ string_of_expr e3 ^ "| " ^ string_of_expr e4
+  | EdgeOp(_, e1, o, e3, e4) -> string_of_expr e1 ^ " " ^ string_of_op o ^ "|" 
+        ^ string_of_expr e3 ^ "| " ^ string_of_expr e4
+  | EdgeList(e1, e2) -> string_of_expr e1 ^ ": " 
+        ^ (List.fold_left (fun s e -> s ^ match e with
+                EdgeOp(_, e1, o, e3, e4) -> (match o with
+                        Link -> (string_of_expr e1 ^ " " ^ string_of_op o ^ "|" 
+                         ^ string_of_expr e3 ^ "| ")
+                      | _ -> "[" ^ string_of_op o ^ " " ^ string_of_expr e4 ^ "],  ")
+              | EdgeOpBi(_, e1, o, e3, _, e5) ->
+                        (string_of_expr e1 ^ " |" ^ string_of_expr e5 ^ "|" ^ string_of_op o ^ "|" 
+                         ^ string_of_expr e3 ^ "| ")
+              | _ -> ""
+        ) "" (List.rev e2))
+        ^ match (List.hd e2) with
+                EdgeOp(_, _, _, _, e4) -> string_of_expr e4
+              | EdgeOpBi(_, _, _, _, e4, _) -> string_of_expr e4
+              | _ -> ""
+  (*| NodeOfGraph(e1, e2) -> "(" ^  e1 ^ ", " 
     ^ e2 ^ ")"
   *)
 
