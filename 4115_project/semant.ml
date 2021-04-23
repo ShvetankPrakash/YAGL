@@ -143,8 +143,9 @@ let check_function func =
     in
 
     let type_of_attribute a = match a with
-        "length" -> Int
-      | "name"   -> String
+        "length"  -> Int
+      | "name"    -> String
+      | "visited" -> Bool
       | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)

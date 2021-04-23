@@ -110,7 +110,11 @@ let translate functions =
   let strlen_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let strlen_func : L.llvalue = 
-      L.declare_function "strlen" strlen_t the_module in    
+      L.declare_function "strlen" strlen_t the_module in
+  let is_visited_t : L.lltype = 
+      L.var_arg_function_type (i1_t) [| L.pointer_type node_t |] in
+  let is_visited_func : L.llvalue = 
+      L.declare_function "is_visited" is_visited_t the_module in 
 
   (* Graph related calls *)
   let make_node_t : L.lltype = 
@@ -228,6 +232,8 @@ let translate functions =
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
    (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
+      | SAttr ((Node, sId), "visited") ->
+            L.build_call is_visited_func [| (expr builder s_table (Node, sId)) |] "is_visited" builder  
       | SAttr (_, _) -> 
             raise (Failure "unsupported attribute type") 
       | SNodeLit (_, nodeName) -> 

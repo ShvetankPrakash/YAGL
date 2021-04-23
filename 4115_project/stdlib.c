@@ -8,6 +8,7 @@
 #include <unistd.h>   /* For open(), creat() */
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 int check_null(void *x) {
 	int nullfd = open("/dev/random", O_WRONLY);
@@ -27,6 +28,7 @@ char *sconcat(char *s1, char *s2) {
 struct node {
 	int id;  // for hash table
 	char* name;
+	bool visited;
 };
 
 struct graph {
@@ -297,7 +299,12 @@ struct node *make_node(char *name) {
 
 	n->id = id++;
 	n->name = node_name;
+	n->visited = false;
 	return n;
+}
+
+bool is_visited(struct node *n) {
+	return n->visited;
 }
 
 char *update_node_name(struct node *n, char *new_name) {
