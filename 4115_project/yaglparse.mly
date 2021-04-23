@@ -78,10 +78,12 @@ stmt_list:
   | stmt_list stmt { $2::$1 }
 
 graph_stmts:
-    NODE ID LPAREN expr RPAREN SEMI         { Binding_Assign((Node, $2), 
+    NODE ID LPAREN expr RPAREN SEMI          { Binding_Assign((Node, $2), 
                                               Assign($2, NodeLit($2, $4), Noexpr)) }
+  | NODE ID SEMI                            { Binding_Assign((Node, $2), 
+                                              Assign($2, NodeLit($2, StrLit("")), Noexpr)) }
   | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
-                                              Assign($2, GraphLit($2), Noexpr)) }
+                                              Assign($2, GraphLit($2), Noexpr))    }
 
 stmt:
     expr SEMI                               { Expr $1               }

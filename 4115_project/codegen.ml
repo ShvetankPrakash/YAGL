@@ -81,6 +81,9 @@ let translate functions =
   let make_graph_t : L.lltype =
           L.function_type (L.pointer_type graph_t)
           [| i32_t |] in
+  let update_node_t : L.lltype = 
+          L.function_type (L.pointer_type node_t)
+           [| (L.pointer_type node_t); (L.pointer_type i8_t) |] in
   let insert_edge_t : L.lltype = 
           L.function_type (L.pointer_type graph_t)
            [| (L.pointer_type graph_t); (L.pointer_type node_t); i32_t; (L.pointer_type node_t) |] in
@@ -97,6 +100,8 @@ let translate functions =
           [| L.pointer_type i8_t; L.pointer_type i8_t |] in
   let make_graph_func : L.llvalue =
       L.declare_function "make_graph" make_graph_t the_module in
+  let update_node_func : L.llvalue =
+      L.declare_function "update_node" update_node_t the_module in
   let insert_edge_func : L.llvalue =
       L.declare_function "insert_edge" insert_edge_t the_module in
   let remove_node_func : L.llvalue =
@@ -287,6 +292,22 @@ let translate functions =
       | SGraphLit _ -> 
                   L.build_call make_graph_func [| L.const_int i32_t 1 |]
                   "make_graph" builder
+      | SAssignNode (s, e1, e2) -> (match e2 with 
+                               (_, SNoexpr) -> (let e' = expr builder s_table e1 in 
+                               ignore(L.build_call update_node_func [| L.build_load (lookup s s_table) "ptr" builder; e'  |]
+                                                         "update_node" builder); e')
+                               | _ -> let e' = expr builder s_table e2 in 
+                                      let index = (match e1 with (* expr builder e in *)
+                                         (Int, _)          -> expr builder s_table e1
+                                     (*| (Int, SLiteral l) -> L.const_int i64_t l May want to keep? *)
+                                       | _                 -> raise(Failure("Semant.ml should have caught."))
+                                      ) in
+                                      let indices = 
+                                        (Array.of_list [L.const_int i64_t 0; index]) in 
+                                      let ptr =  
+                                        L.build_in_bounds_gep (lookup s s_table) indices (s^"_ptr_") builder
+                                      in L.build_store e' ptr builder
+                               )
       | SAssign (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder s_table e1 in 
                                                 ignore(L.build_store e' (lookup s s_table) builder); e')
@@ -369,7 +390,7 @@ let translate functions =
                                           ) :: s_table (*TODO: FIX LEAKING ON THE STACK?*)
                                           in List.fold_left (stmt updated_table) builder sl
       | SExpr e -> ignore(expr builder s_table e); builder 
-      | SBinding (_, _) -> builder;
+      | SBinding (_,_) -> builder;
       | SBinding_Assign ((_, _), e) -> ignore (expr builder s_table e); builder
       | SReturn e -> ignore(match fdecl.styp with
                 (* Special "return nothing" instr *)

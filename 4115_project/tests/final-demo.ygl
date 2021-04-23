@@ -53,6 +53,9 @@ ln: - tiffany - buehler - michael2 - michael1;
 printString("LinkedIn's Network");
 printGraph(ln);
 
+/* Update typo! fixes in all graphs */
+james = "James";
+printGraph(ln);
 
 /* TAKE THINGS FROM BELOW AND IMPLEMENT TO GET BFS WORKING */
 

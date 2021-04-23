@@ -283,7 +283,12 @@ let check_function func =
             let (rt, _) = expr rvalue s_table in
             let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
               string_of_typ rt ^ " in " ^ string_of_expr ex
-            in (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table))
+            in (match lt with
+            Node -> if rt = String then 
+                        (Node, SAssignNode(var, expr e1 s_table, expr e2 s_table)) 
+                    else 
+                        (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table))
+          | _ -> (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table)))
        | BoolLit b -> (Bool, SBoolLit b)
        | Access (s, e) -> 
          let elem_typ = type_of_identifier s s_table in 
@@ -341,7 +346,11 @@ let check_function func =
             | []              -> []
 
           in SBlock(check_stmt_list sl updated_table)
-      | Binding (typ, id) -> SBinding (typ, id)
+      | Binding (typ, id) -> 
+                      if typ = Node then
+                        SBinding_Assign ((typ, id), (typ, SNoexpr))
+                      else
+                        SBinding (typ, id)
       | Binding_Assign ((typ, id), e) -> 
                       SBinding_Assign ((typ, id), expr e symbol_table);
   in 

@@ -57,6 +57,16 @@ int g_contain_n(struct graph *, struct node *);
 char *node_to_string(struct node *);
 char *edge_to_string(struct edge *);
 void print_graph(struct graph *);
+struct node *update_node(struct node *, char *);
+
+struct node *update_node(struct node *n, char *name) {
+	char *node_name = malloc(strlen(name) + 1);
+	strcpy(node_name, name);
+
+	char *old_name = n->name;
+	n->name = node_name;
+	return n;
+}
 
 /* For Jack's testing */
 struct edge *make_edge(struct node *from, struct node *to, int v) {

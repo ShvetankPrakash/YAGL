@@ -15,6 +15,7 @@ and sx =
   | SBinop of sexpr * op * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
+  | SAssignNode of string * sexpr * sexpr
   | SCall of string * sexpr list
   | SAttr of sexpr * string
   | SAccess of string * sexpr
@@ -59,7 +60,7 @@ let rec string_of_sexpr (t, e) =
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
-  | SAssign(v, e1, e2) -> 
+  | SAssign(v, e1, e2) | SAssignNode(v, e1, e2) -> 
       (match e2 with 
           (Void, SNoexpr) -> v ^ " = " ^ string_of_sexpr e1
         | _ -> v ^ "[" ^ string_of_sexpr e1 ^ "]" ^ " = " ^ string_of_sexpr e2 
