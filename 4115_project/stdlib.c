@@ -307,6 +307,10 @@ bool is_visited(struct node *n) {
 	return n->visited;
 }
 
+void update_visited(struct node *n, bool b) {
+	n->visited = b;
+}
+
 char *update_node_name(struct node *n, char *new_name) {
 
 	free(n->name);

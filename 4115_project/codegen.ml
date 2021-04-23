@@ -115,6 +115,10 @@ let translate functions =
       L.var_arg_function_type (i1_t) [| L.pointer_type node_t |] in
   let is_visited_func : L.llvalue = 
       L.declare_function "is_visited" is_visited_t the_module in 
+  let update_visited_t : L.lltype =
+      L.var_arg_function_type (L.pointer_type node_t) [| (L.pointer_type node_t); i1_t |] in
+  let update_visited_func : L.llvalue =
+      L.declare_function "update_visited" update_visited_t the_module in
 
   (* Graph related calls *)
   let make_node_t : L.lltype = 
@@ -287,6 +291,10 @@ let translate functions =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
           | _         -> raise (Failure "This binop is not implemented")
 	  ) e1' e2' "tmp" builder
+      | SVisit (e1, e2) ->
+          let e1' = expr builder s_table e1
+	  and e2' = expr builder s_table e2 in
+          L.build_call update_visited_func [| e1'; e2'|] "update_visited" builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SChrLit  c  -> L.const_int i8_t (Char.code c)
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)

@@ -13,6 +13,7 @@ and sx =
   | SNodeLit of string * sexpr
   | SGraphLit of string
   | SBinop of sexpr * op * sexpr
+  | SVisit of sexpr * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
@@ -56,6 +57,8 @@ let rec string_of_sexpr (t, e) =
   | SStrLit(str) -> str
   | SId(s) -> s
   | SAttr(sx, a) -> string_of_sexpr sx ^ "." ^ a
+  | SVisit(e1, e2) ->
+      string_of_sexpr e1 ^ " " ^  string_of_sexpr e2
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e

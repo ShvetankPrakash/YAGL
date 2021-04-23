@@ -245,6 +245,16 @@ let check_function func =
           in (ty, SEdgeOp((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4')))
        | Id s       -> (type_of_identifier s s_table, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a))
+       | Visit(e1, e2) as e ->
+          let (t1, e1') = expr e1 s_table 
+          and (t2, e2') = expr e2 s_table in
+          let ty = match t1 with
+            Node when t2 = Bool -> Void
+          | _ -> raise (
+              Failure ("illegal visit operands " ^
+                       string_of_typ t1 ^ " " ^ 
+                       string_of_typ t2 ^ " in " ^ string_of_expr e))
+          in (ty, SVisit((t1, e1'), (t2, e2')))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 
           and (t2, e2') = expr e2 s_table in
