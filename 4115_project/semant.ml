@@ -145,6 +145,7 @@ let check_function func =
     let type_of_attribute a = match a with
         "length" -> Int
       | "name"   -> String
+      | "num_nodes" -> Int
       | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)

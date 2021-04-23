@@ -327,6 +327,10 @@ void print_node(struct node *n) {
 	printf("%s\n", n->name);
 }
 
+int get_graph_size(struct graph *g) {
+	return g->n_pos;
+}
+
 void print_graph(struct graph *g) {
 	printf("============== Graph Print ===============\n");
 	printf("\tStats: \t%d\t%d\t%d\n", g->n_size, g->n_pos, g->e_pos);

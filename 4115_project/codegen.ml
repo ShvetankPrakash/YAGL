@@ -84,6 +84,9 @@ let translate functions =
   let update_node_t : L.lltype = 
           L.function_type (L.pointer_type node_t)
            [| (L.pointer_type node_t); (L.pointer_type i8_t) |] in
+  let num_node_t : L.lltype = 
+          L.function_type (i32_t)
+           [| (L.pointer_type graph_t) |] in
   let insert_edge_t : L.lltype = 
           L.function_type (L.pointer_type graph_t)
            [| (L.pointer_type graph_t); (L.pointer_type node_t); i32_t; (L.pointer_type node_t) |] in
@@ -106,6 +109,8 @@ let translate functions =
       L.declare_function "insert_edge" insert_edge_t the_module in
   let remove_node_func : L.llvalue =
       L.declare_function "remove_node" remove_node_t the_module in
+  let num_node_func : L.llvalue =
+      L.declare_function "get_graph_size" num_node_t the_module in
   let insert_node_func : L.llvalue =
       L.declare_function "insert_node" insert_node_t the_module in
   let print_graph_func : L.llvalue =
@@ -233,6 +238,8 @@ let translate functions =
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
    (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
+      | SAttr ((Graph, sId), "num_nodes") -> 
+            L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size" builder
       | SAttr (_, _) -> 
             raise (Failure "unsupported attribute type") 
       | SNodeLit (_, nodeName) -> 
