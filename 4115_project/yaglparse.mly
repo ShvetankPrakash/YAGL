@@ -8,7 +8,7 @@ open Ast
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW REVARROW BIARROW COLON DOT QMARK
 %token NOT EQ LT GT AND OR BAR LAND
-%token RETURN IF ELSE FOR WHILE BFS INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
+%token RETURN IF ELSE FOR WHILE INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
 %token <bool> BLIT
 %token <char> CHRLIT
@@ -97,8 +97,6 @@ stmt:
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
-  | BFS LPAREN expr SEMI expr SEMI expr RPAREN stmt
-                                            { Bfs($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
   | graph_stmts                             { $1                    }
   | typ ID SEMI                             { Binding($1, $2)       }
