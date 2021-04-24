@@ -147,6 +147,7 @@ let check_function func =
         "length" -> Int
       | "name"   -> String
       | "num_nodes" -> Int
+      | "nodes" -> Node
       | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
@@ -245,7 +246,13 @@ let check_function func =
                        string_of_typ t4 ^ " in " ^ string_of_expr e)) 
           in (ty, SEdgeOp((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4')))
        | Id s       -> (type_of_identifier s s_table, SId s)
-       | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a))
+       | Attr(s, a, e) -> let e' = expr e s_table in
+                          let typ_of_e = (match e' with (t, _) -> t) in
+                          (match e' with
+                                  (Int, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e'))
+                                | (Void, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, (Void, SNoexpr)))
+                                | _ -> raise (Failure ("Wrong accessor type, " ^ string_of_typ typ_of_e ^ ", on attribute!"))
+                          )
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 
           and (t2, e2') = expr e2 s_table in
@@ -294,8 +301,9 @@ let check_function func =
        | BoolLit b -> (Bool, SBoolLit b)
        | Access (s, e) -> 
          let elem_typ = type_of_identifier s s_table in 
+         let e' = expr e s_table in 
          ( match elem_typ  with 
-             Array(t, _) -> let e' = expr e s_table in 
+             Array(t, _) ->
                                      (match e' with 
                                        (Int, _) -> (t, SAccess(s, e'))
                                      | (_, _)   -> raise(Failure("Can only access array element with int type."))
