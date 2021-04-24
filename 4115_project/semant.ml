@@ -277,6 +277,7 @@ let check_function func =
                                 | "node" -> if et = Int && e2t = Void then ret else raise (Failure err)
                                 | "neighbor" -> if et = Node && e2t = Int then ret else raise (Failure err)
                                 | "curr_dist" -> if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "visited" -> if et = Void && e2t = Void then ret else raise (Failure err)
                                 | "weight" -> if et = Node && e2t = Node then ret else raise (Failure err)
                                 | _ -> raise (Failure err))
        | Binop(e1, op, e2) as e -> 

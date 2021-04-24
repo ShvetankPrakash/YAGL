@@ -60,41 +60,62 @@ printGraph(ln);
 /* TAKE THINGS FROM BELOW AND IMPLEMENT TO GET BFS WORKING */
 
 /* Find friends of friends */
-/*bfs(fb, james, 2); */          /* Should find tank */
+dfs_call(fb, james, 2);           /* Should find tank */
+print(fb);
 
 
-/*void bfs(Graph g, Node vertex, int depth){
-      reset(g);
-      bfs_helper(g, vertex, depth);
-}
-
-
-void bfs_helper(Graph g, Node vertex, int depth){
-   if (vertex.visted == true) {
+void dfs_helper(Graph g, Node vertex, int depth){
+   if (vertex.visited == true) {
+       return;
+   }
+   if (vertex.curr_dist > depth) {
        return;
    }
    vertex.visited = true;
-*/
-   /* Do whatever you want to the vertex */
-  /* printNode(vertex);
 
-   int size = get_num_neighbors(g, vertex);
-   Node[size] neighbors = get_neighbors(g, vertex);
+   /* Do whatever you want to the vertex */
+   if (vertex.curr_dist == 0) {
+   } else {
+   	print(vertex);
+   }
+
+   int size = g.num_neighbors[vertex];
    int curr = 0;
+
    while (curr < size) {
-      neighbors[curr].curr_dist = vertex.curr_dist + 1;
-      bfs_helper(g, neighbors[curr], depth);
+      Node current;
+      current = g.neighbor[vertex, curr];
+      if (current.curr_dist == 0) {
+          current.curr_dist = vertex.curr_dist + 1;
+      }
+      curr = curr + 1;
+   }
+   curr = 0;
+   while (curr < size) {
+      Node current;
+      current = g.neighbor[vertex, curr];
+      /*print(g.weight[current, vertex]);*/
+      dfs_helper(g, current, depth);
       curr = curr + 1;
    }
 }
 
 void reset(Graph g) {
     int size = g.num_nodes;
-    Node[size] nodes = g.nodes;
     int curr = 0;
+
     while (curr < size) {
-      Node current = nodes[curr];
+      Node current;
+      current = g.node[curr];
       current.visited = false;
       current.curr_dist = 0;
+      curr = curr + 1;
     }
-}*/
+}
+
+void dfs_call(Graph g, Node vertex, int depth) {
+
+	reset(g);
+	dfs_helper(g, vertex, depth);
+
+}
