@@ -70,7 +70,7 @@ let translate functions =
                          | Id _  -> raise(Failure("TODO"))
                          | _ -> raise(Failure("TODO"))
                         )
-                        in L.array_type (ltype_of_typ t)  num
+                        in L.array_type (ltype_of_typ t) num 
   in
 
   (* Declare built-in functions *)
@@ -86,6 +86,9 @@ let translate functions =
            [| (L.pointer_type node_t); (L.pointer_type i8_t) |] in
   let num_node_t : L.lltype = 
           L.function_type (i32_t)
+           [| (L.pointer_type graph_t) |] in
+  let get_nodes_t : L.lltype = 
+          L.function_type (((L.pointer_type node_t) ))
            [| (L.pointer_type graph_t) |] in
   let insert_edge_t : L.lltype = 
           L.function_type (L.pointer_type graph_t)
@@ -109,6 +112,8 @@ let translate functions =
       L.declare_function "insert_edge" insert_edge_t the_module in
   let remove_node_func : L.llvalue =
       L.declare_function "remove_node" remove_node_t the_module in
+  let get_nodes_func : L.llvalue =
+      L.declare_function "get_nodes" get_nodes_t the_module in
   let num_node_func : L.llvalue =
       L.declare_function "get_graph_size" num_node_t the_module in
   let insert_node_func : L.llvalue =
@@ -238,8 +243,10 @@ let translate functions =
       | SAttr ((String, sId), "length") -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
    (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
-      | SAttr ((Graph, sId), "num_nodes") -> 
-            L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size" builder
+      | SAttr ((Graph, sId), attr) -> (match attr with 
+            "num_nodes" -> L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size"
+          | "nodes" -> L.build_call get_nodes_func [| (expr builder s_table (Graph, sId)) |] "get_nodes"
+          | _ -> raise (Failure "unsupported attribute type")) builder
       | SAttr (_, _) -> 
             raise (Failure "unsupported attribute type") 
       | SNodeLit (_, nodeName) -> 
@@ -330,6 +337,15 @@ let translate functions =
                                         L.build_in_bounds_gep (lookup s s_table) indices (s^"_ptr_") builder
                                       in L.build_store e' ptr builder
                                )
+      | SCall ("print", [x]) -> (
+                      match x with
+                          (Node, _) -> (L.build_call print_node_func [| expr builder s_table x |] "print_node" builder)
+                        | (Graph, _) -> L.build_call print_graph_func [| expr builder s_table x |] "print_graph" builder
+                        | (Int, _) | (Bool, _) -> L.build_call printf_func [| int_format_str ; (expr builder s_table x) |] "printf" builder
+                        | (Char, _) -> L.build_call printf_func [| char_format_str ; (expr builder s_table x) |] "printf" builder
+                        | (Float, _) -> L.build_call printf_func [| float_format_str ; (expr builder s_table x) |] "printf" builder
+                        | (String, _) -> L.build_call printf_func [| string_format_str ; (expr builder s_table x) |] "printf" builder
+                        | _ -> raise (Failure("Not implemented print type.")))
       | SCall ("printNode", [n]) ->
     L.build_call print_node_func [| expr builder s_table n |] "print_node" builder
       | SCall ("printGraph", [g]) ->

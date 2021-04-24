@@ -26,8 +26,8 @@ type expr =
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
-         | Node | Edge| Graph 
-
+         | Node | Edge| Graph
+ 
 type bind = typ * string
 
 type stmt =

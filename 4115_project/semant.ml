@@ -83,7 +83,8 @@ let check (stmts, funcs) =
       fname = name; 
       formals = [(ty, "x")];
       body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
+    in List.fold_left add_bind StringMap.empty [ ("print", Void);
+                                                 ("printInt", Int); 
                                                  ("printString", String);
                                                  ("printBool", Bool);
                                                  ("printFloat", Float);
@@ -178,7 +179,7 @@ let check_function func =
             let (et, e') = expr e s_table in 
             let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
-            in (check_assign ft et err, e')
+            in (if fname = "print" then  (et, e') else (check_assign ft et err, e'))
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
@@ -285,11 +286,11 @@ let check_function func =
             let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
               string_of_typ rt ^ " in " ^ string_of_expr ex
             in (match lt with
-            Node -> if rt = String then 
+                Node -> if rt = String then 
                         (Node, SAssignNode(var, expr e1 s_table, expr e2 s_table)) 
                     else 
                         (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table))
-          | _ -> (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table)))
+                | _ -> (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table)))
        | BoolLit b -> (Bool, SBoolLit b)
        | Access (s, e) -> 
          let elem_typ = type_of_identifier s s_table in 
