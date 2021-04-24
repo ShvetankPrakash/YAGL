@@ -152,6 +152,7 @@ let check_function func =
       | "num_neighbors" -> Int
       | "node" -> Node
       | "neighbor" -> Node
+      | "weight" -> Int
       | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
@@ -276,6 +277,7 @@ let check_function func =
                                 | "node" -> if et = Int && e2t = Void then ret else raise (Failure err)
                                 | "neighbor" -> if et = Node && e2t = Int then ret else raise (Failure err)
                                 | "curr_dist" -> if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "weight" -> if et = Node && e2t = Node then ret else raise (Failure err)
                                 | _ -> raise (Failure err))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 

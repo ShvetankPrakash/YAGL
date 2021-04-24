@@ -1,0 +1,549 @@
+/usr/bin/lli
+
+###### Testing test-array
+./yagl.native tests/test-array.ygl > test-array.ll
+llc -relocation-model=pic test-array.ll > test-array.s
+cc -o test-array.exe test-array.s stdlib.o
+./test-array.exe
+diff -b test-array.out tests/test-array.out > test-array.diff
+###### SUCCESS
+
+###### Testing test-array2
+./yagl.native tests/test-array2.ygl > test-array2.ll
+llc -relocation-model=pic test-array2.ll > test-array2.s
+cc -o test-array2.exe test-array2.s stdlib.o
+./test-array2.exe
+diff -b test-array2.out tests/test-array2.out > test-array2.diff
+###### SUCCESS
+
+###### Testing test-array3
+./yagl.native tests/test-array3.ygl > test-array3.ll
+llc -relocation-model=pic test-array3.ll > test-array3.s
+cc -o test-array3.exe test-array3.s stdlib.o
+./test-array3.exe
+diff -b test-array3.out tests/test-array3.out > test-array3.diff
+###### SUCCESS
+
+###### Testing test-array_nodes
+./yagl.native tests/test-array_nodes.ygl > test-array_nodes.ll
+llc -relocation-model=pic test-array_nodes.ll > test-array_nodes.s
+cc -o test-array_nodes.exe test-array_nodes.s stdlib.o
+./test-array_nodes.exe
+diff -b test-array_nodes.out tests/test-array_nodes.out > test-array_nodes.diff
+###### SUCCESS
+
+###### Testing test-assign
+./yagl.native tests/test-assign.ygl > test-assign.ll
+llc -relocation-model=pic test-assign.ll > test-assign.s
+cc -o test-assign.exe test-assign.s stdlib.o
+./test-assign.exe
+diff -b test-assign.out tests/test-assign.out > test-assign.diff
+###### SUCCESS
+
+###### Testing test-binop
+./yagl.native tests/test-binop.ygl > test-binop.ll
+llc -relocation-model=pic test-binop.ll > test-binop.s
+cc -o test-binop.exe test-binop.s stdlib.o
+./test-binop.exe
+diff -b test-binop.out tests/test-binop.out > test-binop.diff
+###### SUCCESS
+
+###### Testing test-bools
+./yagl.native tests/test-bools.ygl > test-bools.ll
+llc -relocation-model=pic test-bools.ll > test-bools.s
+cc -o test-bools.exe test-bools.s stdlib.o
+./test-bools.exe
+diff -b test-bools.out tests/test-bools.out > test-bools.diff
+###### SUCCESS
+
+###### Testing test-char
+./yagl.native tests/test-char.ygl > test-char.ll
+llc -relocation-model=pic test-char.ll > test-char.s
+cc -o test-char.exe test-char.s stdlib.o
+./test-char.exe
+diff -b test-char.out tests/test-char.out > test-char.diff
+###### SUCCESS
+
+###### Testing test-declareassign
+./yagl.native tests/test-declareassign.ygl > test-declareassign.ll
+llc -relocation-model=pic test-declareassign.ll > test-declareassign.s
+cc -o test-declareassign.exe test-declareassign.s stdlib.o
+./test-declareassign.exe
+diff -b test-declareassign.out tests/test-declareassign.out > test-declareassign.diff
+###### SUCCESS
+
+###### Testing test-decls
+./yagl.native tests/test-decls.ygl > test-decls.ll
+llc -relocation-model=pic test-decls.ll > test-decls.s
+cc -o test-decls.exe test-decls.s stdlib.o
+./test-decls.exe
+diff -b test-decls.out tests/test-decls.out > test-decls.diff
+###### SUCCESS
+
+###### Testing test-edge1
+./yagl.native tests/test-edge1.ygl > test-edge1.ll
+llc -relocation-model=pic test-edge1.ll > test-edge1.s
+cc -o test-edge1.exe test-edge1.s stdlib.o
+./test-edge1.exe
+diff -b test-edge1.out tests/test-edge1.out > test-edge1.diff
+###### SUCCESS
+
+###### Testing test-edge2
+./yagl.native tests/test-edge2.ygl > test-edge2.ll
+llc -relocation-model=pic test-edge2.ll > test-edge2.s
+cc -o test-edge2.exe test-edge2.s stdlib.o
+./test-edge2.exe
+diff -b test-edge2.out tests/test-edge2.out > test-edge2.diff
+###### SUCCESS
+
+###### Testing test-edge3
+./yagl.native tests/test-edge3.ygl > test-edge3.ll
+llc -relocation-model=pic test-edge3.ll > test-edge3.s
+cc -o test-edge3.exe test-edge3.s stdlib.o
+./test-edge3.exe
+diff -b test-edge3.out tests/test-edge3.out > test-edge3.diff
+###### SUCCESS
+
+###### Testing test-edge4
+./yagl.native tests/test-edge4.ygl > test-edge4.ll
+llc -relocation-model=pic test-edge4.ll > test-edge4.s
+cc -o test-edge4.exe test-edge4.s stdlib.o
+./test-edge4.exe
+diff -b test-edge4.out tests/test-edge4.out > test-edge4.diff
+###### SUCCESS
+
+###### Testing test-edge5
+./yagl.native tests/test-edge5.ygl > test-edge5.ll
+llc -relocation-model=pic test-edge5.ll > test-edge5.s
+cc -o test-edge5.exe test-edge5.s stdlib.o
+./test-edge5.exe
+diff -b test-edge5.out tests/test-edge5.out > test-edge5.diff
+###### SUCCESS
+
+###### Testing test-edge6
+./yagl.native tests/test-edge6.ygl > test-edge6.ll
+llc -relocation-model=pic test-edge6.ll > test-edge6.s
+cc -o test-edge6.exe test-edge6.s stdlib.o
+./test-edge6.exe
+diff -b test-edge6.out tests/test-edge6.out > test-edge6.diff
+###### SUCCESS
+
+###### Testing test-edge7
+./yagl.native tests/test-edge7.ygl > test-edge7.ll
+llc -relocation-model=pic test-edge7.ll > test-edge7.s
+cc -o test-edge7.exe test-edge7.s stdlib.o
+./test-edge7.exe
+diff -b test-edge7.out tests/test-edge7.out > test-edge7.diff
+###### SUCCESS
+
+###### Testing test-edge8
+./yagl.native tests/test-edge8.ygl > test-edge8.ll
+llc -relocation-model=pic test-edge8.ll > test-edge8.s
+cc -o test-edge8.exe test-edge8.s stdlib.o
+./test-edge8.exe
+diff -b test-edge8.out tests/test-edge8.out > test-edge8.diff
+###### SUCCESS
+
+###### Testing test-edge9
+./yagl.native tests/test-edge9.ygl > test-edge9.ll
+llc -relocation-model=pic test-edge9.ll > test-edge9.s
+cc -o test-edge9.exe test-edge9.s stdlib.o
+./test-edge9.exe
+diff -b test-edge9.out tests/test-edge9.out > test-edge9.diff
+###### SUCCESS
+
+###### Testing test-float
+./yagl.native tests/test-float.ygl > test-float.ll
+llc -relocation-model=pic test-float.ll > test-float.s
+cc -o test-float.exe test-float.s stdlib.o
+./test-float.exe
+diff -b test-float.out tests/test-float.out > test-float.diff
+###### SUCCESS
+
+###### Testing test-generic_print
+./yagl.native tests/test-generic_print.ygl > test-generic_print.ll
+llc -relocation-model=pic test-generic_print.ll > test-generic_print.s
+cc -o test-generic_print.exe test-generic_print.s stdlib.o
+./test-generic_print.exe
+diff -b test-generic_print.out tests/test-generic_print.out > test-generic_print.diff
+###### SUCCESS
+
+###### Testing test-get_neighbors
+./yagl.native tests/test-get_neighbors.ygl > test-get_neighbors.ll
+llc -relocation-model=pic test-get_neighbors.ll > test-get_neighbors.s
+cc -o test-get_neighbors.exe test-get_neighbors.s stdlib.o
+./test-get_neighbors.exe
+diff -b test-get_neighbors.out tests/test-get_neighbors.out > test-get_neighbors.diff
+###### SUCCESS
+
+###### Testing test-get_node
+./yagl.native tests/test-get_node.ygl > test-get_node.ll
+llc -relocation-model=pic test-get_node.ll > test-get_node.s
+cc -o test-get_node.exe test-get_node.s stdlib.o
+./test-get_node.exe
+diff -b test-get_node.out tests/test-get_node.out > test-get_node.diff
+###### SUCCESS
+
+###### Testing test-get_node_name
+./yagl.native tests/test-get_node_name.ygl > test-get_node_name.ll
+llc -relocation-model=pic test-get_node_name.ll > test-get_node_name.s
+cc -o test-get_node_name.exe test-get_node_name.s stdlib.o
+./test-get_node_name.exe
+diff -b test-get_node_name.out tests/test-get_node_name.out > test-get_node_name.diff
+###### SUCCESS
+
+###### Testing test-get_weight
+./yagl.native tests/test-get_weight.ygl > test-get_weight.ll
+llc -relocation-model=pic test-get_weight.ll > test-get_weight.s
+cc -o test-get_weight.exe test-get_weight.s stdlib.o
+./test-get_weight.exe
+diff -b test-get_weight.out tests/test-get_weight.out > test-get_weight.diff
+###### SUCCESS
+
+###### Testing test-graph-node
+./yagl.native tests/test-graph-node.ygl > test-graph-node.ll
+llc -relocation-model=pic test-graph-node.ll > test-graph-node.s
+cc -o test-graph-node.exe test-graph-node.s stdlib.o
+./test-graph-node.exe
+diff -b test-graph-node.out tests/test-graph-node.out > test-graph-node.diff
+###### SUCCESS
+
+###### Testing test-graph_size
+./yagl.native tests/test-graph_size.ygl > test-graph_size.ll
+llc -relocation-model=pic test-graph_size.ll > test-graph_size.s
+cc -o test-graph_size.exe test-graph_size.s stdlib.o
+./test-graph_size.exe
+diff -b test-graph_size.out tests/test-graph_size.out > test-graph_size.diff
+###### SUCCESS
+
+###### Testing test-hello
+./yagl.native tests/test-hello.ygl > test-hello.ll
+llc -relocation-model=pic test-hello.ll > test-hello.s
+cc -o test-hello.exe test-hello.s stdlib.o
+./test-hello.exe
+diff -b test-hello.out tests/test-hello.out > test-hello.diff
+###### SUCCESS
+
+###### Testing test-if1
+./yagl.native tests/test-if1.ygl > test-if1.ll
+llc -relocation-model=pic test-if1.ll > test-if1.s
+cc -o test-if1.exe test-if1.s stdlib.o
+./test-if1.exe
+diff -b test-if1.out tests/test-if1.out > test-if1.diff
+###### SUCCESS
+
+###### Testing test-if2
+./yagl.native tests/test-if2.ygl > test-if2.ll
+llc -relocation-model=pic test-if2.ll > test-if2.s
+cc -o test-if2.exe test-if2.s stdlib.o
+./test-if2.exe
+diff -b test-if2.out tests/test-if2.out > test-if2.diff
+###### SUCCESS
+
+###### Testing test-if3
+./yagl.native tests/test-if3.ygl > test-if3.ll
+llc -relocation-model=pic test-if3.ll > test-if3.s
+cc -o test-if3.exe test-if3.s stdlib.o
+./test-if3.exe
+diff -b test-if3.out tests/test-if3.out > test-if3.diff
+###### SUCCESS
+
+###### Testing test-if4
+./yagl.native tests/test-if4.ygl > test-if4.ll
+llc -relocation-model=pic test-if4.ll > test-if4.s
+cc -o test-if4.exe test-if4.s stdlib.o
+./test-if4.exe
+diff -b test-if4.out tests/test-if4.out > test-if4.diff
+###### SUCCESS
+
+###### Testing test-node
+./yagl.native tests/test-node.ygl > test-node.ll
+llc -relocation-model=pic test-node.ll > test-node.s
+cc -o test-node.exe test-node.s stdlib.o
+./test-node.exe
+diff -b test-node.out tests/test-node.out > test-node.diff
+###### SUCCESS
+
+###### Testing test-node2
+./yagl.native tests/test-node2.ygl > test-node2.ll
+llc -relocation-model=pic test-node2.ll > test-node2.s
+cc -o test-node2.exe test-node2.s stdlib.o
+./test-node2.exe
+diff -b test-node2.out tests/test-node2.out > test-node2.diff
+###### SUCCESS
+
+###### Testing test-node3
+./yagl.native tests/test-node3.ygl > test-node3.ll
+llc -relocation-model=pic test-node3.ll > test-node3.s
+cc -o test-node3.exe test-node3.s stdlib.o
+./test-node3.exe
+diff -b test-node3.out tests/test-node3.out > test-node3.diff
+###### SUCCESS
+
+###### Testing test-node4
+./yagl.native tests/test-node4.ygl > test-node4.ll
+llc -relocation-model=pic test-node4.ll > test-node4.s
+cc -o test-node4.exe test-node4.s stdlib.o
+./test-node4.exe
+diff -b test-node4.out tests/test-node4.out > test-node4.diff
+###### SUCCESS
+
+###### Testing test-return
+./yagl.native tests/test-return.ygl > test-return.ll
+llc -relocation-model=pic test-return.ll > test-return.s
+cc -o test-return.exe test-return.s stdlib.o
+./test-return.exe
+diff -b test-return.out tests/test-return.out > test-return.diff
+###### SUCCESS
+
+###### Testing test-scope1
+./yagl.native tests/test-scope1.ygl > test-scope1.ll
+llc -relocation-model=pic test-scope1.ll > test-scope1.s
+cc -o test-scope1.exe test-scope1.s stdlib.o
+./test-scope1.exe
+diff -b test-scope1.out tests/test-scope1.out > test-scope1.diff
+###### SUCCESS
+
+###### Testing test-scope2
+./yagl.native tests/test-scope2.ygl > test-scope2.ll
+llc -relocation-model=pic test-scope2.ll > test-scope2.s
+cc -o test-scope2.exe test-scope2.s stdlib.o
+./test-scope2.exe
+diff -b test-scope2.out tests/test-scope2.out > test-scope2.diff
+###### SUCCESS
+
+###### Testing test-scope3
+./yagl.native tests/test-scope3.ygl > test-scope3.ll
+llc -relocation-model=pic test-scope3.ll > test-scope3.s
+cc -o test-scope3.exe test-scope3.s stdlib.o
+./test-scope3.exe
+diff -b test-scope3.out tests/test-scope3.out > test-scope3.diff
+###### SUCCESS
+
+###### Testing test-string-length
+./yagl.native tests/test-string-length.ygl > test-string-length.ll
+llc -relocation-model=pic test-string-length.ll > test-string-length.s
+cc -o test-string-length.exe test-string-length.s stdlib.o
+./test-string-length.exe
+diff -b test-string-length.out tests/test-string-length.out > test-string-length.diff
+###### SUCCESS
+
+###### Testing test-stringbinop
+./yagl.native tests/test-stringbinop.ygl > test-stringbinop.ll
+llc -relocation-model=pic test-stringbinop.ll > test-stringbinop.s
+cc -o test-stringbinop.exe test-stringbinop.s stdlib.o
+./test-stringbinop.exe
+diff -b test-stringbinop.out tests/test-stringbinop.out > test-stringbinop.diff
+###### SUCCESS
+
+###### Testing test-stringbinop2
+./yagl.native tests/test-stringbinop2.ygl > test-stringbinop2.ll
+llc -relocation-model=pic test-stringbinop2.ll > test-stringbinop2.s
+cc -o test-stringbinop2.exe test-stringbinop2.s stdlib.o
+./test-stringbinop2.exe
+diff -b test-stringbinop2.out tests/test-stringbinop2.out > test-stringbinop2.diff
+###### SUCCESS
+
+###### Testing test-while
+./yagl.native tests/test-while.ygl > test-while.ll
+llc -relocation-model=pic test-while.ll > test-while.s
+cc -o test-while.exe test-while.s stdlib.o
+./test-while.exe
+diff -b test-while.out tests/test-while.out > test-while.diff
+###### SUCCESS
+
+###### Testing fail-array
+./yagl.native < tests/fail-array.ygl 2> fail-array.err >> testall.log
+diff -b fail-array.err tests/fail-array.err > fail-array.diff
+###### SUCCESS
+
+###### Testing fail-array2
+./yagl.native < tests/fail-array2.ygl 2> fail-array2.err >> testall.log
+diff -b fail-array2.err tests/fail-array2.err > fail-array2.diff
+###### SUCCESS
+
+###### Testing fail-array3
+./yagl.native < tests/fail-array3.ygl 2> fail-array3.err >> testall.log
+diff -b fail-array3.err tests/fail-array3.err > fail-array3.diff
+###### SUCCESS
+
+###### Testing fail-array4
+./yagl.native < tests/fail-array4.ygl 2> fail-array4.err >> testall.log
+; ModuleID = 'YAGL'
+source_filename = "YAGL"
+
+%node_t.1 = type opaque
+%edge_list_t = type opaque
+
+@fmt = private unnamed_addr constant [4 x i8] c"%d\0A\00"
+@fmt.1 = private unnamed_addr constant [4 x i8] c"%g\0A\00"
+@fmt.2 = private unnamed_addr constant [4 x i8] c"%s\0A\00"
+@fmt.3 = private unnamed_addr constant [4 x i8] c"%c\0A\00"
+
+declare i32 @printf(i8*, ...)
+
+declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @make_graph(i32)
+
+declare { i32, i1* }* @update_node({ i32, i1* }*, i8*)
+
+declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @insert_edge({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*, i32, { i32, i1* }*)
+
+declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @remove_node({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*)
+
+declare i8* @get_name_node({ i32, i1* }*)
+
+declare { i32, i1* }* @get_node({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, i32)
+
+declare i32 @get_weight({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*, { i32, i1* }*)
+
+declare { i32, i1* }* @get_neighbor({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*, i32)
+
+declare i32 @get_num_neighbors({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*)
+
+declare i32 @get_graph_size({ i32, i32, i32, %node_t.1**, %edge_list_t** }*)
+
+declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @insert_node({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*)
+
+declare i32 @print_graph({ i32, i32, i32, %node_t.1**, %edge_list_t** }*)
+
+declare i8* @sconcat(i8*, i8*)
+
+declare i32 @strlen(i8*, ...)
+
+declare { i32, i1* }* @make_node(i8*, ...)
+
+declare i32 @print_node({ i32, i1* }*, ...)
+
+define i32 @main() {
+entry:
+  %b = alloca i32
+  %a = alloca [5 x i1]
+  %b1 = alloca i32
+  %a2 = alloca [5 x i1]
+  store i32 5, i32* %b1
+  %b3 = load i32, i32* %b1
+  %a_ptr_ = getelementptr inbounds [5 x i1], [5 x i1]* %a2, i64 0, i32 %b3
+  store i1 false, i1* %a_ptr_
+  ret i32 0
+}
+###### FAILED
+
+###### Testing fail-array5
+./yagl.native < tests/fail-array5.ygl 2> fail-array5.err >> testall.log
+diff -b fail-array5.err tests/fail-array5.err > fail-array5.diff
+###### SUCCESS
+
+###### Testing fail-array6
+./yagl.native < tests/fail-array6.ygl 2> fail-array6.err >> testall.log
+diff -b fail-array6.err tests/fail-array6.err > fail-array6.diff
+###### SUCCESS
+
+###### Testing fail-assign
+./yagl.native < tests/fail-assign.ygl 2> fail-assign.err >> testall.log
+diff -b fail-assign.err tests/fail-assign.err > fail-assign.diff
+###### SUCCESS
+
+###### Testing fail-binop
+./yagl.native < tests/fail-binop.ygl 2> fail-binop.err >> testall.log
+diff -b fail-binop.err tests/fail-binop.err > fail-binop.diff
+###### SUCCESS
+
+###### Testing fail-bools
+./yagl.native < tests/fail-bools.ygl 2> fail-bools.err >> testall.log
+diff -b fail-bools.err tests/fail-bools.err > fail-bools.diff
+###### SUCCESS
+
+###### Testing fail-callmain
+./yagl.native < tests/fail-callmain.ygl 2> fail-callmain.err >> testall.log
+diff -b fail-callmain.err tests/fail-callmain.err > fail-callmain.diff
+###### SUCCESS
+
+###### Testing fail-char
+./yagl.native < tests/fail-char.ygl 2> fail-char.err >> testall.log
+diff -b fail-char.err tests/fail-char.err > fail-char.diff
+###### SUCCESS
+
+###### Testing fail-declareassign
+./yagl.native < tests/fail-declareassign.ygl 2> fail-declareassign.err >> testall.log
+diff -b fail-declareassign.err tests/fail-declareassign.err > fail-declareassign.diff
+###### SUCCESS
+
+###### Testing fail-decls
+./yagl.native < tests/fail-decls.ygl 2> fail-decls.err >> testall.log
+diff -b fail-decls.err tests/fail-decls.err > fail-decls.diff
+###### SUCCESS
+
+###### Testing fail-defineownmain
+./yagl.native < tests/fail-defineownmain.ygl 2> fail-defineownmain.err >> testall.log
+diff -b fail-defineownmain.err tests/fail-defineownmain.err > fail-defineownmain.diff
+###### SUCCESS
+
+###### Testing fail-dupdefine
+./yagl.native < tests/fail-dupdefine.ygl 2> fail-dupdefine.err >> testall.log
+diff -b fail-dupdefine.err tests/fail-dupdefine.err > fail-dupdefine.diff
+###### SUCCESS
+
+###### Testing fail-edge1
+./yagl.native < tests/fail-edge1.ygl 2> fail-edge1.err >> testall.log
+diff -b fail-edge1.err tests/fail-edge1.err > fail-edge1.diff
+###### SUCCESS
+
+###### Testing fail-edge2
+./yagl.native < tests/fail-edge2.ygl 2> fail-edge2.err >> testall.log
+diff -b fail-edge2.err tests/fail-edge2.err > fail-edge2.diff
+###### SUCCESS
+
+###### Testing fail-edge3
+./yagl.native < tests/fail-edge3.ygl 2> fail-edge3.err >> testall.log
+diff -b fail-edge3.err tests/fail-edge3.err > fail-edge3.diff
+###### SUCCESS
+
+###### Testing fail-edge4
+./yagl.native < tests/fail-edge4.ygl 2> fail-edge4.err >> testall.log
+diff -b fail-edge4.err tests/fail-edge4.err > fail-edge4.diff
+###### SUCCESS
+
+###### Testing fail-float
+./yagl.native < tests/fail-float.ygl 2> fail-float.err >> testall.log
+diff -b fail-float.err tests/fail-float.err > fail-float.diff
+###### SUCCESS
+
+###### Testing fail-get_neighbors
+./yagl.native < tests/fail-get_neighbors.ygl 2> fail-get_neighbors.err >> testall.log
+diff -b fail-get_neighbors.err tests/fail-get_neighbors.err > fail-get_neighbors.diff
+###### SUCCESS
+
+###### Testing fail-hello
+./yagl.native < tests/fail-hello.ygl 2> fail-hello.err >> testall.log
+diff -b fail-hello.err tests/fail-hello.err > fail-hello.diff
+###### SUCCESS
+
+###### Testing fail-if
+./yagl.native < tests/fail-if.ygl 2> fail-if.err >> testall.log
+diff -b fail-if.err tests/fail-if.err > fail-if.diff
+###### SUCCESS
+
+###### Testing fail-node
+./yagl.native < tests/fail-node.ygl 2> fail-node.err >> testall.log
+diff -b fail-node.err tests/fail-node.err > fail-node.diff
+###### SUCCESS
+
+###### Testing fail-return
+./yagl.native < tests/fail-return.ygl 2> fail-return.err >> testall.log
+diff -b fail-return.err tests/fail-return.err > fail-return.diff
+###### SUCCESS
+
+###### Testing fail-string-length
+./yagl.native < tests/fail-string-length.ygl 2> fail-string-length.err >> testall.log
+diff -b fail-string-length.err tests/fail-string-length.err > fail-string-length.diff
+###### SUCCESS
+
+###### Testing fail-stringbinop
+./yagl.native < tests/fail-stringbinop.ygl 2> fail-stringbinop.err >> testall.log
+diff -b fail-stringbinop.err tests/fail-stringbinop.err > fail-stringbinop.diff
+###### SUCCESS
+
+###### Testing fail-while
+./yagl.native < tests/fail-while.ygl 2> fail-while.err >> testall.log
+diff -b fail-while.err tests/fail-while.err > fail-while.diff
+###### SUCCESS

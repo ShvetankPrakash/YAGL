@@ -98,8 +98,11 @@ let translate functions =
           L.function_type ((L.pointer_type node_t) )
            [| (L.pointer_type graph_t); (L.pointer_type node_t); i32_t |] in
   let get_num_neighbors_t : L.lltype = 
-          L.function_type (i32_t )
+          L.function_type (i32_t)
            [| (L.pointer_type graph_t); (L.pointer_type node_t); |] in
+  let get_weight_t : L.lltype = 
+          L.function_type (i32_t)
+           [| (L.pointer_type graph_t); (L.pointer_type node_t); (L.pointer_type node_t)|] in
   let insert_edge_t : L.lltype = 
           L.function_type (L.pointer_type graph_t)
            [| (L.pointer_type graph_t); (L.pointer_type node_t); i32_t; (L.pointer_type node_t) |] in
@@ -126,6 +129,8 @@ let translate functions =
       L.declare_function "get_name_node" get_name_node_t the_module in
   let get_node_func : L.llvalue =
       L.declare_function "get_node" get_node_t the_module in
+  let get_weight_func : L.llvalue =
+      L.declare_function "get_weight" get_weight_t the_module in
   let get_neighbor_func : L.llvalue =
       L.declare_function "get_neighbor" get_neighbor_t the_module in
   let get_num_neighbors_func : L.llvalue =
@@ -283,7 +288,8 @@ let translate functions =
             "node" -> L.build_call get_node_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_node"
           | "num_nodes"     -> L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size"
           | "neighbor" -> L.build_call get_neighbor_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_neighbor"
-          | "num_neighbors" -> L.build_call get_num_neighbors_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_num_neighbors"
+          | "num_neighbors" -> L.build_call get_num_neighbors_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_num_neighbors"            
+          | "weight" -> L.build_call get_weight_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_weight"
           | _ -> raise (Failure "unsupported attribute type")) builder
       | SAttr ((Node, sId), "name", _, _) ->
               L.build_call get_name_node_func [| (expr builder s_table (Node, sId)) |] "get_name_node" builder
