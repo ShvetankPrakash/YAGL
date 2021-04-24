@@ -380,6 +380,24 @@ int get_num_neighbors(struct graph *g, struct node *n) {
 struct node *get_node(struct graph *g, int pos) {
 	return g->nodes[pos];
 }
+int get_weight(struct graph *g, struct node *n, struct node *n2) {
+	for (int nn = 0; nn < g->e_pos; nn++) {
+		struct edge_list *e = g->edges[nn];
+		if (e->edge->from_node->id == n->id) {
+			
+			int nullfd = open("/dev/random", O_WRONLY);
+			while (!(write(nullfd, e, sizeof(e)) < 0)) {
+				struct edge *edge = e->edge;
+				if (edge->deleted == 0 && edge->to_node->id == n2->id) {
+					return edge->val;
+				}
+				e = e->next_edge;
+			}	
+
+		}
+	}
+	return -100000;
+}
 
 void print_graph(struct graph *g) {
 	printf("============== Graph Print ===============\n");
