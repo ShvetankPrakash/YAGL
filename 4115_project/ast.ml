@@ -23,7 +23,7 @@ type expr =
   | EdgeList of expr * expr list
   | EdgeOp of expr * expr * op * expr * expr
   | EdgeOpBi of expr * expr * op * expr * expr * expr
-  | Visit of expr * expr
+  | NodeAttr of expr * string * expr
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
@@ -85,8 +85,8 @@ let rec string_of_expr = function
   | ChrLit(c) -> Char.escaped c
   | Id(s) -> s
   | Attr(s, a) -> s ^ "." ^ a
-  | Visit(e1, e2) ->
-      string_of_expr e1 ^ " " ^ string_of_expr e2
+  | NodeAttr(e1, e2, e3) ->
+      string_of_expr e1 ^ " " ^ e2 ^ " " ^ string_of_expr e3
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e

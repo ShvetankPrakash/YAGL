@@ -29,6 +29,7 @@ struct node {
 	int id;  // for hash table
 	char* name;
 	bool visited;
+	int curr_dist;
 };
 
 struct graph {
@@ -300,6 +301,7 @@ struct node *make_node(char *name) {
 	n->id = id++;
 	n->name = node_name;
 	n->visited = false;
+	n->curr_dist = 0;
 	return n;
 }
 
@@ -309,6 +311,14 @@ bool is_visited(struct node *n) {
 
 void update_visited(struct node *n, bool b) {
 	n->visited = b;
+}
+
+int get_distance(struct node *n) {
+	return n->curr_dist;
+}
+
+void update_distance(struct node *n, int i) {
+	n->curr_dist = i;
 }
 
 char *update_node_name(struct node *n, char *new_name) {

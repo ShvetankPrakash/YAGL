@@ -119,6 +119,14 @@ let translate functions =
       L.var_arg_function_type (L.pointer_type node_t) [| (L.pointer_type node_t); i1_t |] in
   let update_visited_func : L.llvalue =
       L.declare_function "update_visited" update_visited_t the_module in
+  let get_distance_t : L.lltype =
+      L.var_arg_function_type (i32_t) [| L.pointer_type node_t |] in
+  let get_distance_func : L.llvalue =
+      L.declare_function "get_distance" get_distance_t the_module in
+  let update_distance_t : L.lltype =
+      L.var_arg_function_type (L.pointer_type node_t) [| (L.pointer_type node_t); i32_t |] in
+  let update_distance_func : L.llvalue =
+      L.declare_function "update_distance" update_distance_t the_module in
 
   (* Graph related calls *)
   let make_node_t : L.lltype = 
@@ -238,6 +246,8 @@ let translate functions =
    (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
       | SAttr ((Node, sId), "visited") ->
             L.build_call is_visited_func [| (expr builder s_table (Node, sId)) |] "is_visited" builder  
+      | SAttr ((Node, sId), "curr_dist") ->
+            L.build_call get_distance_func [| (expr builder s_table (Node, sId)) |] "get_distance" builder
       | SAttr (_, _) -> 
             raise (Failure "unsupported attribute type") 
       | SNodeLit (_, nodeName) -> 
@@ -291,10 +301,15 @@ let translate functions =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
           | _         -> raise (Failure "This binop is not implemented")
 	  ) e1' e2' "tmp" builder
-      | SVisit (e1, e2) ->
+      | SNodeAttr (e1, t, e2) ->
           let e1' = expr builder s_table e1
 	  and e2' = expr builder s_table e2 in
-          L.build_call update_visited_func [| e1'; e2'|] "update_visited" builder
+          (match t with
+            A.Bool ->
+                L.build_call update_visited_func [| e1'; e2'|] "update_visited"
+          | A.Int  -> L.build_call update_distance_func [| e1'; e2'|] "update_distance"
+          | _         -> raise (Failure "This NodeAttr is not implemented")
+          ) builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SChrLit  c  -> L.const_int i8_t (Char.code c)
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)

@@ -143,9 +143,10 @@ let check_function func =
     in
 
     let type_of_attribute a = match a with
-        "length"  -> Int
-      | "name"    -> String
-      | "visited" -> Bool
+        "length"    -> Int
+      | "name"      -> String
+      | "visited"   -> Bool
+      | "curr_dist" -> Int
       | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
@@ -245,16 +246,18 @@ let check_function func =
           in (ty, SEdgeOp((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4')))
        | Id s       -> (type_of_identifier s s_table, SId s)
        | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a))
-       | Visit(e1, e2) as e ->
-          let (t1, e1') = expr e1 s_table 
-          and (t2, e2') = expr e2 s_table in
-          let ty = match t1 with
-            Node when t2 = Bool -> Void
+       | NodeAttr(e1, e2, e3) as e ->
+          let (t1, e1') = expr e1 s_table
+          and t2 = type_of_attribute e2
+          and (t3, e3') = expr e3 s_table in
+          let ty = match t2 with
+            Bool when t3 = Bool && t1 = Node -> Void
+          | Int when t3 = Int && t1 = Node -> Void
           | _ -> raise (
               Failure ("illegal visit operands " ^
-                       string_of_typ t1 ^ " " ^ 
-                       string_of_typ t2 ^ " in " ^ string_of_expr e))
-          in (ty, SVisit((t1, e1'), (t2, e2')))
+                       string_of_typ t1 ^ " " ^
+                       string_of_typ t3 ^ " in " ^ string_of_expr e))
+          in (ty, SNodeAttr((t1, e1'), t2, (t3, e3')))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 
           and (t2, e2') = expr e2 s_table in
