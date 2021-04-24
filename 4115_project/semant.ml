@@ -250,21 +250,18 @@ let check_function func =
        | Id s       -> (type_of_identifier s s_table, SId s)
        | Attr(s, a, e, e2) -> let e' = expr e s_table in
                           let e2' = expr e2 s_table in
-                          let typ_of_e = (match e' with (t, _) -> t) in
-                          (*let typ_of_e2 = (match e2' with (t, _) -> t) in*)
-                          let err = "Wrong accessor type, " ^ string_of_typ typ_of_e ^ ", on attribute!" in
-                          (match e' with
-                                  (Int, _) -> if a = "node"  then 
-                                                (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', e2')) 
-                                              else 
-                                                raise (Failure err)
-                                | (Node, _) -> (match e2' with
-                                                          (Int, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', e2')) 
-                                                        | _ -> if a = "num_neighbors" then (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', (Void, SNoexpr))) else raise (Failure err)
-                                                )
-                                | (Void, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, (Void, SNoexpr), (Void, SNoexpr)))
-                                | _ -> raise (Failure err)
-                          )
+                          let et = (match e' with (t, _) -> t) in
+                          let e2t = (match e2' with (t, _) -> t) in
+                          let err = "Wrong accessor type, [" ^ string_of_typ et ^ ", " ^ string_of_typ e2t ^"], on attribute " ^ a ^ "." in
+                          let ret = (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', e2')) in
+                          (match a with
+                                  "length" -> if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "name"   ->  if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "num_nodes" -> if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "num_neighbors" -> if et = Node && e2t = Void then ret else raise (Failure err)
+                                | "node" -> if et = Int && e2t = Void then ret else raise (Failure err)
+                                | "neighbor" -> if et = Node && e2t = Int then ret else raise (Failure err)
+                                | _ -> raise (Failure err))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 
           and (t2, e2') = expr e2 s_table in
