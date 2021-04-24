@@ -331,6 +331,10 @@ int get_graph_size(struct graph *g) {
 	return g->n_pos;
 }
 
+char *get_name_node(struct node *n) {
+	return n->name;
+}
+
 struct node *get_node(struct graph *g, int pos) {
 	return g->nodes[pos];
 }
