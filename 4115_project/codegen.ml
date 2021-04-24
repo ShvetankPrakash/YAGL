@@ -37,21 +37,18 @@ let translate functions =
   in
 
   (* Graph Types *)
-  let node_t     = L.struct_type context 
-                   [| i32_t; 
-                      L.pointer_type i1_t |]
-  and edge_t     = L.struct_type context 
-                   [| L.pointer_type (L.named_struct_type context "node_t");
-                      L.pointer_type (L.named_struct_type context "node_t"); 
-                      i32_t  |]
-  (*and edge_list_t = L.struct_type context 
-                    [| L.pointer_type (L.named_struct_type context "edge_t"); 
-                       L.pointer_type (L.named_struct_type context "edge_list_t") |]*)
-  and graph_t = L.struct_type context 
-                [| i32_t; i32_t; i32_t; 
-                   L.pointer_type (L.pointer_type (L.named_struct_type context "node_t")); 
-                   L.pointer_type (L.pointer_type (L.named_struct_type context "edge_list_t"))  |]
-  in
+  let node_t      = L.named_struct_type context "node_t" in
+  L.struct_set_body node_t [| i32_t; L.pointer_type i1_t |] true;
+
+  let edge_t      = L.named_struct_type context "edge_t" in
+  L.struct_set_body edge_t [| L.pointer_type node_t; L.pointer_type node_t; i32_t  |] true;
+
+  let edge_list_t =  L.named_struct_type context "edge_list_t" in
+  L.struct_set_body edge_list_t [| L.pointer_type edge_t; L.pointer_type edge_list_t |] true;
+
+  let graph_t     = L.named_struct_type context "graph_t" in
+  L.struct_set_body graph_t [| i32_t; i32_t; i32_t; L.pointer_type (L.pointer_type node_t); 
+                               L.pointer_type (L.pointer_type edge_list_t) |] true;
 
   (* Return the LLVM type for a YAGL type *)
   let rec ltype_of_typ = function
