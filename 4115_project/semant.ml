@@ -275,6 +275,7 @@ let check_function func =
                                 | "num_neighbors" -> if et = Node && e2t = Void then ret else raise (Failure err)
                                 | "node" -> if et = Int && e2t = Void then ret else raise (Failure err)
                                 | "neighbor" -> if et = Node && e2t = Int then ret else raise (Failure err)
+                                | "curr_dist" -> if et = Void && e2t = Void then ret else raise (Failure err)
                                 | _ -> raise (Failure err))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 
