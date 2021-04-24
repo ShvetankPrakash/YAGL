@@ -18,7 +18,7 @@ type expr =
   | Unop of uop * expr
   | Assign of string * expr * expr
   | Call of string * expr list
-  | Attr of string * string
+  | Attr of string * string * expr * expr
   | Access of string * expr
   | EdgeList of expr * expr list
   | EdgeOp of expr * expr * op * expr * expr
@@ -26,8 +26,8 @@ type expr =
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
-         | Node | Edge| Graph 
-
+         | Node | Edge| Graph  | Pointer of typ
+ 
 type bind = typ * string
 
 type stmt =
@@ -83,7 +83,13 @@ let rec string_of_expr = function
   | StrLit(str) -> str
   | ChrLit(c) -> Char.escaped c
   | Id(s) -> s
-  | Attr(s, a) -> s ^ "." ^ a
+  | Attr(s, a, e, e2) -> if e = Noexpr then 
+                                s ^ "." ^ a 
+                         else ( if e2 = Noexpr then
+                                 s ^ "." ^ a ^ "[" ^ string_of_expr e ^ "]"
+                                else
+                                 s ^ "." ^ a ^ "[" ^ string_of_expr e ^ ", " ^ string_of_expr e2 ^ "]"
+                         )
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
@@ -130,6 +136,7 @@ let rec string_of_typ = function
   | Graph       -> "Graph"
   | Edge        -> "Edge"
   | Array(t, e) -> string_of_typ t ^ "[" ^ string_of_expr e ^ "]"
+  | Pointer(t)  -> string_of_typ t ^ " *"
 
 let rec string_of_stmt = function
     Block(stmts) ->

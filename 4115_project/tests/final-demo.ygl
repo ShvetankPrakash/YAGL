@@ -53,6 +53,9 @@ ln: - tiffany - buehler - michael2 - michael1;
 printString("LinkedIn's Network");
 printGraph(ln);
 
+/* Update typo! fixes in all graphs */
+james = "James";
+printGraph(ln);
 
 /* TAKE THINGS FROM BELOW AND IMPLEMENT TO GET BFS WORKING */
 
@@ -86,7 +89,7 @@ void bfs_helper(Graph g, Node vertex, int depth){
 }
 
 void reset(Graph g) {
-    int size = get_size(g);
+    int size = g.num_nodes;
     Node[size] nodes = g.nodes;
     int curr = 0;
     while (curr < size) {
