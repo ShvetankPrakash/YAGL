@@ -60,6 +60,16 @@ int g_contain_n(struct graph *, struct node *);
 char *node_to_string(struct node *);
 char *edge_to_string(struct edge *);
 void print_graph(struct graph *);
+struct node *update_node(struct node *, char *);
+
+struct node *update_node(struct node *n, char *name) {
+	char *node_name = malloc(strlen(name) + 1);
+	strcpy(node_name, name);
+
+	char *old_name = n->name;
+	n->name = node_name;
+	return n;
+}
 
 /* For Jack's testing */
 struct edge *make_edge(struct node *from, struct node *to, int v) {
@@ -336,6 +346,60 @@ char *update_node_name(struct node *n, char *new_name) {
 
 void print_node(struct node *n) {
 	printf("%s\n", n->name);
+}
+
+int get_graph_size(struct graph *g) {
+	return g->n_pos;
+}
+
+char *get_name_node(struct node *n) {
+	return n->name;
+}
+
+struct node *get_neighbor(struct graph *g, struct node *n, int pos) {
+	int on = 0;
+	for (int nn = 0; nn < g->e_pos; nn++) {
+		struct edge_list *e = g->edges[nn];
+		if (e->edge->from_node->id == n->id) {
+			
+			int nullfd = open("/dev/random", O_WRONLY);
+			while (!(write(nullfd, e, sizeof(e)) < 0)) {
+				struct edge *edge = e->edge;
+				if (edge->deleted == 0) {
+					if (on == pos) 
+						return edge->to_node;
+					on += 1;
+				}
+				e = e->next_edge;
+			}	
+
+		}
+	}
+	// Fail case: return n
+	return n;
+}
+int get_num_neighbors(struct graph *g, struct node *n) {
+	int on = 0;
+	for (int nn = 0; nn < g->e_pos; nn++) {
+		struct edge_list *e = g->edges[nn];
+		if (e->edge->from_node->id == n->id) {
+			
+			int nullfd = open("/dev/random", O_WRONLY);
+			while (!(write(nullfd, e, sizeof(e)) < 0)) {
+				struct edge *edge = e->edge;
+				if (edge->deleted == 0) {
+					on += 1;
+				}
+				e = e->next_edge;
+			}	
+
+		}
+	}
+	// Fail case: return n
+	return on;
+}
+struct node *get_node(struct graph *g, int pos) {
+	return g->nodes[pos];
 }
 
 void print_graph(struct graph *g) {

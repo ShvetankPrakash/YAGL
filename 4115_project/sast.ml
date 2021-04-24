@@ -16,8 +16,9 @@ and sx =
   | SNodeAttr of sexpr * typ * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
+  | SAssignNode of string * sexpr * sexpr
   | SCall of string * sexpr list
-  | SAttr of sexpr * string
+  | SAttr of sexpr * string * sexpr * sexpr
   | SAccess of string * sexpr
   | SEdgeList of sexpr * sexpr list
   | SEdgeOp of sexpr * sexpr * op * sexpr * sexpr
@@ -56,13 +57,15 @@ let rec string_of_sexpr (t, e) =
   | SGraphLit(name) -> name
   | SStrLit(str) -> str
   | SId(s) -> s
-  | SAttr(sx, a) -> string_of_sexpr sx ^ "." ^ a
   | SNodeAttr(e1, t, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_typ t ^ " " ^  string_of_sexpr e2 
+  | SAttr(sx, a, e, e2) -> (match e with
+                        (_, SNoexpr) | (Void, _) -> string_of_sexpr sx ^ "." ^ a 
+                      | _ -> string_of_sexpr sx ^ "." ^ a ^ "[" ^ string_of_sexpr e ^ ", " ^ string_of_sexpr e2 ^ "]"  )
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
-  | SAssign(v, e1, e2) -> 
+  | SAssign(v, e1, e2) | SAssignNode(v, e1, e2) -> 
       (match e2 with 
           (Void, SNoexpr) -> v ^ " = " ^ string_of_sexpr e1
         | _ -> v ^ "[" ^ string_of_sexpr e1 ^ "]" ^ " = " ^ string_of_sexpr e2 

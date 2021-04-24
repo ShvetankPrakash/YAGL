@@ -83,7 +83,8 @@ let check (stmts, funcs) =
       fname = name; 
       formals = [(ty, "x")];
       body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("printInt", Int); 
+    in List.fold_left add_bind StringMap.empty [ ("print", Void);
+                                                 ("printInt", Int); 
                                                  ("printString", String);
                                                  ("printBool", Bool);
                                                  ("printFloat", Float);
@@ -143,10 +144,14 @@ let check_function func =
     in
 
     let type_of_attribute a = match a with
-        "length"    -> Int
-      | "name"      -> String
-      | "visited"   -> Bool
+        "visited"   -> Bool
       | "curr_dist" -> Int
+      | "length" -> Int
+      | "name"   -> String
+      | "num_nodes" -> Int
+      | "num_neighbors" -> Int
+      | "node" -> Node
+      | "neighbor" -> Node
       | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
@@ -179,7 +184,7 @@ let check_function func =
             let (et, e') = expr e s_table in 
             let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
-            in (check_assign ft et err, e')
+            in (if fname = "print" then  (et, e') else (check_assign ft et err, e'))
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
@@ -245,7 +250,6 @@ let check_function func =
                        string_of_typ t4 ^ " in " ^ string_of_expr e)) 
           in (ty, SEdgeOp((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4')))
        | Id s       -> (type_of_identifier s s_table, SId s)
-       | Attr(s, a) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a))
        | NodeAttr(e1, e2, e3) as e ->
           let (t1, e1') = expr e1 s_table
           and t2 = type_of_attribute e2
@@ -258,6 +262,20 @@ let check_function func =
                        string_of_typ t1 ^ " " ^
                        string_of_typ t3 ^ " in " ^ string_of_expr e))
           in (ty, SNodeAttr((t1, e1'), t2, (t3, e3')))
+       | Attr(s, a, e, e2) -> let e' = expr e s_table in
+                          let e2' = expr e2 s_table in
+                          let et = (match e' with (t, _) -> t) in
+                          let e2t = (match e2' with (t, _) -> t) in
+                          let err = "Wrong accessor type, [" ^ string_of_typ et ^ ", " ^ string_of_typ e2t ^"], on attribute " ^ a ^ "." in
+                          let ret = (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', e2')) in
+                          (match a with
+                                  "length" -> if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "name"   ->  if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "num_nodes" -> if et = Void && e2t = Void then ret else raise (Failure err)
+                                | "num_neighbors" -> if et = Node && e2t = Void then ret else raise (Failure err)
+                                | "node" -> if et = Int && e2t = Void then ret else raise (Failure err)
+                                | "neighbor" -> if et = Node && e2t = Int then ret else raise (Failure err)
+                                | _ -> raise (Failure err))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 
           and (t2, e2') = expr e2 s_table in
@@ -297,12 +315,18 @@ let check_function func =
             let (rt, _) = expr rvalue s_table in
             let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
               string_of_typ rt ^ " in " ^ string_of_expr ex
-            in (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table))
+            in (match lt with
+                Node -> if rt = String then 
+                        (Node, SAssignNode(var, expr e1 s_table, expr e2 s_table)) 
+                    else 
+                        (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table))
+                | _ -> (check_assign lt rt err, SAssign(var, expr e1 s_table, expr e2 s_table)))
        | BoolLit b -> (Bool, SBoolLit b)
        | Access (s, e) -> 
          let elem_typ = type_of_identifier s s_table in 
+         let e' = expr e s_table in 
          ( match elem_typ  with 
-             Array(t, _) -> let e' = expr e s_table in 
+             Array(t, _) ->
                                      (match e' with 
                                        (Int, _) -> (t, SAccess(s, e'))
                                      | (_, _)   -> raise(Failure("Can only access array element with int type."))
@@ -355,7 +379,11 @@ let check_function func =
             | []              -> []
 
           in SBlock(check_stmt_list sl updated_table)
-      | Binding (typ, id) -> SBinding (typ, id)
+      | Binding (typ, id) -> 
+                      if typ = Node then
+                        SBinding_Assign ((typ, id), (typ, SNoexpr))
+                      else
+                        SBinding (typ, id)
       | Binding_Assign ((typ, id), e) -> 
                       SBinding_Assign ((typ, id), expr e symbol_table);
   in 
