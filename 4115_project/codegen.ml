@@ -38,10 +38,10 @@ let translate functions =
 
   (* Graph Types *)
   let node_t      = L.named_struct_type context "node_t" in
-  L.struct_set_body node_t [| i32_t; L.pointer_type i1_t |] true;
+  L.struct_set_body node_t [| i32_t; L.pointer_type i8_t; i8_t; i32_t |] true;
 
   let edge_t      = L.named_struct_type context "edge_t" in
-  L.struct_set_body edge_t [| L.pointer_type node_t; L.pointer_type node_t; i32_t  |] true;
+  L.struct_set_body edge_t [| L.pointer_type node_t; L.pointer_type node_t; i32_t; i32_t  |] true;
 
   let edge_list_t =  L.named_struct_type context "edge_list_t" in
   L.struct_set_body edge_list_t [| L.pointer_type edge_t; L.pointer_type edge_list_t |] true;
