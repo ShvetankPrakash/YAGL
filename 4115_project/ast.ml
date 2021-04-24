@@ -18,7 +18,7 @@ type expr =
   | Unop of uop * expr
   | Assign of string * expr * expr
   | Call of string * expr list
-  | Attr of string * string * expr
+  | Attr of string * string * expr * expr
   | Access of string * expr
   | EdgeList of expr * expr list
   | EdgeOp of expr * expr * op * expr * expr
@@ -83,7 +83,13 @@ let rec string_of_expr = function
   | StrLit(str) -> str
   | ChrLit(c) -> Char.escaped c
   | Id(s) -> s
-  | Attr(s, a, e) -> if e = Noexpr then s ^ "." ^ a else s ^ "." ^ a ^ "[" ^ string_of_expr e ^ "]" 
+  | Attr(s, a, e, e2) -> if e = Noexpr then 
+                                s ^ "." ^ a 
+                         else ( if e2 = Noexpr then
+                                 s ^ "." ^ a ^ "[" ^ string_of_expr e ^ "]"
+                                else
+                                 s ^ "." ^ a ^ "[" ^ string_of_expr e ^ ", " ^ string_of_expr e2 ^ "]"
+                         )
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e

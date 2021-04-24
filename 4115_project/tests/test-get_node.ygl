@@ -6,7 +6,7 @@ g: + n + n2;
 int num = g.num_nodes;
 int pos = 0;
 while (pos < num) {
-	print(g.nodes[pos]);
+	print(g.node[pos]);
 	pos = pos + 1;
 }
 

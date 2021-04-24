@@ -72,7 +72,11 @@ formals_opt:
 
 formal_list:
     typ ID                   { [($1,$2)]     }
+  | NODE ID                  { [(Node, $2)]  }
+  | GRAPH ID                 { [(Graph, $2)] }
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
+  | formal_list COMMA NODE ID { (Node,$4) :: $1 }
+  | formal_list COMMA GRAPH ID { (Graph,$4) :: $1 }
   
 stmt_list:
   /* nothing */    { [] }
@@ -83,8 +87,9 @@ graph_stmts:
                                               Assign($2, NodeLit($2, $4), Noexpr))              }
   | NODE ID SEMI                            { Binding_Assign((Node, $2), 
                                               Assign($2, NodeLit($2, StrLit("")), Noexpr))      }
-  | GRAPH ID SEMI                           { Binding_Assign((Graph, $2), 
+  | GRAPH ID SEMI                           { Binding_Assign((Graph, $2),
                                               Assign($2, GraphLit($2), Noexpr))                 }
+
 
 stmt:
     expr SEMI                               { Expr $1               }
@@ -228,8 +233,9 @@ expr:
   | ID ASSIGN expr   { Assign($1, $3, Noexpr)            }
   | ID LBRAC expr RBRAC ASSIGN expr { Assign($1, $3, $6) }
   /*| ID COLON expr QMARK expr { Noexpr                  }*/
-  | ID DOT ID        { Attr($1, $3, Noexpr)              } 
-  | ID DOT ID LBRAC expr RBRAC { Attr($1, $3, $5)        } 
+  | ID DOT ID        { Attr($1, $3, Noexpr, Noexpr)              } 
+  | ID DOT ID LBRAC expr RBRAC { Attr($1, $3, $5, Noexpr)        } 
+  | ID DOT ID LBRAC expr COMMA expr RBRAC { Attr($1, $3, $5, $7)        } 
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)             }

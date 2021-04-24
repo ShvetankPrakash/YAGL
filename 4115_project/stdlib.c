@@ -335,6 +335,48 @@ char *get_name_node(struct node *n) {
 	return n->name;
 }
 
+struct node *get_neighbor(struct graph *g, struct node *n, int pos) {
+	int on = 0;
+	for (int nn = 0; nn < g->e_pos; nn++) {
+		struct edge_list *e = g->edges[nn];
+		if (e->edge->from_node->id == n->id) {
+			
+			int nullfd = open("/dev/random", O_WRONLY);
+			while (!(write(nullfd, e, sizeof(e)) < 0)) {
+				struct edge *edge = e->edge;
+				if (edge->deleted == 0) {
+					if (on == pos) 
+						return edge->to_node;
+					on += 1;
+				}
+				e = e->next_edge;
+			}	
+
+		}
+	}
+	// Fail case: return n
+	return n;
+}
+int get_num_neighbors(struct graph *g, struct node *n) {
+	int on = 0;
+	for (int nn = 0; nn < g->e_pos; nn++) {
+		struct edge_list *e = g->edges[nn];
+		if (e->edge->from_node->id == n->id) {
+			
+			int nullfd = open("/dev/random", O_WRONLY);
+			while (!(write(nullfd, e, sizeof(e)) < 0)) {
+				struct edge *edge = e->edge;
+				if (edge->deleted == 0) {
+					on += 1;
+				}
+				e = e->next_edge;
+			}	
+
+		}
+	}
+	// Fail case: return n
+	return on;
+}
 struct node *get_node(struct graph *g, int pos) {
 	return g->nodes[pos];
 }

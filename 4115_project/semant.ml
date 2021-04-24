@@ -147,7 +147,9 @@ let check_function func =
         "length" -> Int
       | "name"   -> String
       | "num_nodes" -> Int
-      | "nodes" -> Node
+      | "num_neighbors" -> Int
+      | "node" -> Node
+      | "neighbor" -> Node
       | _ -> raise( Failure "Unknown attribute!")
     in
     (* Check array sizes are all of type int *)
@@ -246,12 +248,22 @@ let check_function func =
                        string_of_typ t4 ^ " in " ^ string_of_expr e)) 
           in (ty, SEdgeOp((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4')))
        | Id s       -> (type_of_identifier s s_table, SId s)
-       | Attr(s, a, e) -> let e' = expr e s_table in
+       | Attr(s, a, e, e2) -> let e' = expr e s_table in
+                          let e2' = expr e2 s_table in
                           let typ_of_e = (match e' with (t, _) -> t) in
+                          (*let typ_of_e2 = (match e2' with (t, _) -> t) in*)
+                          let err = "Wrong accessor type, " ^ string_of_typ typ_of_e ^ ", on attribute!" in
                           (match e' with
-                                  (Int, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e'))
-                                | (Void, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, (Void, SNoexpr)))
-                                | _ -> raise (Failure ("Wrong accessor type, " ^ string_of_typ typ_of_e ^ ", on attribute!"))
+                                  (Int, _) -> if a = "node"  then 
+                                                (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', e2')) 
+                                              else 
+                                                raise (Failure err)
+                                | (Node, _) -> (match e2' with
+                                                          (Int, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', e2')) 
+                                                        | _ -> if a = "num_neighbors" then (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', (Void, SNoexpr))) else raise (Failure err)
+                                                )
+                                | (Void, _) -> (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, (Void, SNoexpr), (Void, SNoexpr)))
+                                | _ -> raise (Failure err)
                           )
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 

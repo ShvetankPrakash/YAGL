@@ -94,6 +94,12 @@ let translate functions =
   let get_node_t : L.lltype = 
           L.function_type ((L.pointer_type node_t) )
            [| (L.pointer_type graph_t); i32_t |] in
+  let get_neighbor_t : L.lltype = 
+          L.function_type ((L.pointer_type node_t) )
+           [| (L.pointer_type graph_t); (L.pointer_type node_t); i32_t |] in
+  let get_num_neighbors_t : L.lltype = 
+          L.function_type (i32_t )
+           [| (L.pointer_type graph_t); (L.pointer_type node_t); |] in
   let insert_edge_t : L.lltype = 
           L.function_type (L.pointer_type graph_t)
            [| (L.pointer_type graph_t); (L.pointer_type node_t); i32_t; (L.pointer_type node_t) |] in
@@ -120,6 +126,10 @@ let translate functions =
       L.declare_function "get_name_node" get_name_node_t the_module in
   let get_node_func : L.llvalue =
       L.declare_function "get_node" get_node_t the_module in
+  let get_neighbor_func : L.llvalue =
+      L.declare_function "get_neighbor" get_neighbor_t the_module in
+  let get_num_neighbors_func : L.llvalue =
+      L.declare_function "get_num_neighbors" get_num_neighbors_t the_module in
   let num_node_func : L.llvalue =
       L.declare_function "get_graph_size" num_node_t the_module in
   let insert_node_func : L.llvalue =
@@ -246,14 +256,16 @@ let translate functions =
           | _ -> raise (Failure "This edge op is not implemented.")
           )
       | SId s   -> L.build_load (lookup s s_table) s builder
-      | SAttr ((String, sId), "length", _) -> 
+      | SAttr ((String, sId), "length", _, _) -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
-   (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
-      | SAttr ((Graph, sId), attr, e) -> (match attr with 
-            "num_nodes" -> L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size"
-          | "nodes" -> L.build_call get_node_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_node"
+   (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)          
+      | SAttr ((Graph, sId), attr, e, e2) -> (match attr with 
+            "node" -> L.build_call get_node_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_node"
+          | "num_nodes"     -> L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size"
+          | "neighbor" -> L.build_call get_neighbor_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_neighbor"
+          | "num_neighbors" -> L.build_call get_num_neighbors_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_num_neighbors"
           | _ -> raise (Failure "unsupported attribute type")) builder
-      | SAttr ((Node, sId), "name", _) ->
+      | SAttr ((Node, sId), "name", _, _) ->
               L.build_call get_name_node_func [| (expr builder s_table (Node, sId)) |] "get_name_node" builder
       | SAttr (_) -> 
             raise (Failure "unsupported attribute type") 
