@@ -144,7 +144,9 @@ let check_function func =
     in
 
     let type_of_attribute a = match a with
-        "length" -> Int
+        "visited"   -> Bool
+      | "curr_dist" -> Int
+      | "length" -> Int
       | "name"   -> String
       | "num_nodes" -> Int
       | "num_neighbors" -> Int
@@ -248,6 +250,18 @@ let check_function func =
                        string_of_typ t4 ^ " in " ^ string_of_expr e)) 
           in (ty, SEdgeOp((t1, e1'), (t2, e2'),  op, (t3, e3'), (t4, e4')))
        | Id s       -> (type_of_identifier s s_table, SId s)
+       | NodeAttr(e1, e2, e3) as e ->
+          let (t1, e1') = expr e1 s_table
+          and t2 = type_of_attribute e2
+          and (t3, e3') = expr e3 s_table in
+          let ty = match t2 with
+            Bool when t3 = Bool && t1 = Node -> Void
+          | Int when t3 = Int && t1 = Node -> Void
+          | _ -> raise (
+              Failure ("illegal visit operands " ^
+                       string_of_typ t1 ^ " " ^
+                       string_of_typ t3 ^ " in " ^ string_of_expr e))
+          in (ty, SNodeAttr((t1, e1'), t2, (t3, e3')))
        | Attr(s, a, e, e2) -> let e' = expr e s_table in
                           let e2' = expr e2 s_table in
                           let et = (match e' with (t, _) -> t) in

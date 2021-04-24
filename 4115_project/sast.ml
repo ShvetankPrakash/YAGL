@@ -13,6 +13,7 @@ and sx =
   | SNodeLit of string * sexpr
   | SGraphLit of string
   | SBinop of sexpr * op * sexpr
+  | SNodeAttr of sexpr * typ * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr * sexpr
   | SAssignNode of string * sexpr * sexpr
@@ -56,6 +57,8 @@ let rec string_of_sexpr (t, e) =
   | SGraphLit(name) -> name
   | SStrLit(str) -> str
   | SId(s) -> s
+  | SNodeAttr(e1, t, e2) ->
+      string_of_sexpr e1 ^ " " ^ string_of_typ t ^ " " ^  string_of_sexpr e2 
   | SAttr(sx, a, e, e2) -> (match e with
                         (_, SNoexpr) | (Void, _) -> string_of_sexpr sx ^ "." ^ a 
                       | _ -> string_of_sexpr sx ^ "." ^ a ^ "[" ^ string_of_sexpr e ^ ", " ^ string_of_sexpr e2 ^ "]"  )

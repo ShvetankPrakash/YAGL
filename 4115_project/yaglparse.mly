@@ -232,10 +232,10 @@ expr:
   | NOT expr         { Unop(Not, $2)                     }
   | ID ASSIGN expr   { Assign($1, $3, Noexpr)            }
   | ID LBRAC expr RBRAC ASSIGN expr { Assign($1, $3, $6) }
-  /*| ID COLON expr QMARK expr { Noexpr                  }*/
   | ID DOT ID        { Attr($1, $3, Noexpr, Noexpr)              } 
   | ID DOT ID LBRAC expr RBRAC { Attr($1, $3, $5, Noexpr)        } 
   | ID DOT ID LBRAC expr COMMA expr RBRAC { Attr($1, $3, $5, $7)        } 
+  | ID DOT ID ASSIGN expr { NodeAttr(Id($1), $3, $5) }  
   | ID LBRAC expr RBRAC { Access($1, $3)                 }
   | LPAREN expr RPAREN { $2                              }
   | ID LPAREN args_opt RPAREN { Call($1, $3)             }

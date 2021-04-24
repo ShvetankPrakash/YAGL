@@ -23,6 +23,7 @@ type expr =
   | EdgeList of expr * expr list
   | EdgeOp of expr * expr * op * expr * expr
   | EdgeOpBi of expr * expr * op * expr * expr * expr
+  | NodeAttr of expr * string * expr
   | Noexpr
 
 type typ = Void | Int | String | Float | Bool | Char | Array of typ * expr
@@ -83,6 +84,8 @@ let rec string_of_expr = function
   | StrLit(str) -> str
   | ChrLit(c) -> Char.escaped c
   | Id(s) -> s
+  | NodeAttr(e1, e2, e3) ->
+      string_of_expr e1 ^ " " ^ e2 ^ " " ^ string_of_expr e3
   | Attr(s, a, e, e2) -> if e = Noexpr then 
                                 s ^ "." ^ a 
                          else ( if e2 = Noexpr then

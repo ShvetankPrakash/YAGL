@@ -141,7 +141,23 @@ let translate functions =
   let strlen_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let strlen_func : L.llvalue = 
-      L.declare_function "strlen" strlen_t the_module in    
+      L.declare_function "strlen" strlen_t the_module in
+  let is_visited_t : L.lltype = 
+      L.var_arg_function_type (i1_t) [| L.pointer_type node_t |] in
+  let is_visited_func : L.llvalue = 
+      L.declare_function "is_visited" is_visited_t the_module in 
+  let update_visited_t : L.lltype =
+      L.var_arg_function_type (L.pointer_type node_t) [| (L.pointer_type node_t); i1_t |] in
+  let update_visited_func : L.llvalue =
+      L.declare_function "update_visited" update_visited_t the_module in
+  let get_distance_t : L.lltype =
+      L.var_arg_function_type (i32_t) [| L.pointer_type node_t |] in
+  let get_distance_func : L.llvalue =
+      L.declare_function "get_distance" get_distance_t the_module in
+  let update_distance_t : L.lltype =
+      L.var_arg_function_type (L.pointer_type node_t) [| (L.pointer_type node_t); i32_t |] in
+  let update_distance_func : L.llvalue =
+      L.declare_function "update_distance" update_distance_t the_module in
 
   (* Graph related calls *)
   let make_node_t : L.lltype = 
@@ -258,7 +274,11 @@ let translate functions =
       | SId s   -> L.build_load (lookup s s_table) s builder
       | SAttr ((String, sId), "length", _, _) -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
-   (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)          
+   (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
+      | SAttr ((Node, sId), "visited", _, _) ->
+            L.build_call is_visited_func [| (expr builder s_table (Node, sId)) |] "is_visited" builder  
+      | SAttr ((Node, sId), "curr_dist", _, _) ->
+            L.build_call get_distance_func [| (expr builder s_table (Node, sId)) |] "get_distance" builder
       | SAttr ((Graph, sId), attr, e, e2) -> (match attr with 
             "node" -> L.build_call get_node_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_node"
           | "num_nodes"     -> L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size"
@@ -268,7 +288,7 @@ let translate functions =
       | SAttr ((Node, sId), "name", _, _) ->
               L.build_call get_name_node_func [| (expr builder s_table (Node, sId)) |] "get_name_node" builder
       | SAttr (_) -> 
-            raise (Failure "unsupported attribute type") 
+          raise (Failure "unsupported attribute type") 
       | SNodeLit (_, nodeName) -> 
             L.build_call make_node_func [| (expr builder s_table nodeName) |]
             "make_node" builder
@@ -320,6 +340,15 @@ let translate functions =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
           | _         -> raise (Failure "This binop is not implemented")
 	  ) e1' e2' "tmp" builder
+      | SNodeAttr (e1, t, e2) ->
+          let e1' = expr builder s_table e1
+	  and e2' = expr builder s_table e2 in
+          (match t with
+            A.Bool ->
+                L.build_call update_visited_func [| e1'; e2'|] "update_visited"
+          | A.Int  -> L.build_call update_distance_func [| e1'; e2'|] "update_distance"
+          | _         -> raise (Failure "This NodeAttr is not implemented")
+          ) builder
       | SStrLit  s  -> L.build_global_stringptr s "fmt" builder
       | SChrLit  c  -> L.const_int i8_t (Char.code c)
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
