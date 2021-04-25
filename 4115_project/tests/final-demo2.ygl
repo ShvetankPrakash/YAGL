@@ -64,7 +64,7 @@ Node dfs_helper_node(Graph g, Node vertex, Node break, int depth){
       curr = curr + 1;
    }
    curr = 0;
-   Node new("junmk");
+   Node new(""); /* just a place holder */
    while (curr < size) {
       Node current;
       current = g.neighbor[vertex, curr];
