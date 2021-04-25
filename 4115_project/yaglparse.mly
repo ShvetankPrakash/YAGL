@@ -65,6 +65,17 @@ fdecl:
 	 fname = $2;
 	 formals = List.rev $4;
 	 body = List.rev $7 } }
+    | GRAPH ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+     { { typ = Graph;
+	 fname = $2;
+	 formals = List.rev $4;
+	 body = List.rev $7 } }
+
+    | NODE ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+     { { typ = Node;
+	 fname = $2;
+	 formals = List.rev $4;
+	 body = List.rev $7 } }
 
 formals_opt:
     /* nothing */ { [] }
