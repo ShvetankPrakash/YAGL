@@ -71,7 +71,6 @@ let translate functions =
                          | _ -> raise(Failure("TODO"))
                         )
                         in L.array_type (ltype_of_typ t) num 
-    | A.Pointer(t) -> L.pointer_type (ltype_of_typ t)
   in
 
   (* Declare built-in functions *)
