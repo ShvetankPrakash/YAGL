@@ -436,6 +436,12 @@ let translate functions =
                           let ptr =  
                             L.build_in_bounds_gep (lookup s s_table) indices (s^"_ptr_") builder
                           in L.build_load ptr (s^"_elem_") builder
+      | SUnop(op, ((t, _) as e)) ->
+          let e' = expr builder s_table e in
+	  (match op with
+	    A.Neg when t = A.Float -> L.build_fneg 
+	  | A.Neg                  -> L.build_neg
+          | A.Not                  -> L.build_not) e' "tmp" builder
       | _ -> raise (Failure("Unhandled case: unimplemented")) 
     in
     

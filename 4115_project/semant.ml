@@ -339,7 +339,15 @@ let check_function func =
          )
        | Noexpr -> (Void, SNoexpr) 
        (* Exprs still to implement below *) 
-       | Unop (_, _) -> raise (Failure("Unop ERROR")) 
+      | Unop(op, e) as ex -> 
+          let (t, e') = expr e s_table in
+          let ty = match op with
+            Neg when t = Int || t = Float -> t
+          | Not when t = Bool -> Bool
+          | _ -> raise (Failure ("illegal unary operator " ^ 
+                                 string_of_uop op ^ string_of_typ t ^
+                                 " in " ^ string_of_expr ex))
+          in (ty, SUnop(op, (t, e')))
     in
 
     let check_bool_expr e s_table = 
