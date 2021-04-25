@@ -1,3 +1,6 @@
+import stdalgo.ygl
+import stdgraph.ygl
+
 /* Social Media Application */
 
 Graph fb;        /* Facebook  */
@@ -62,60 +65,3 @@ printGraph(ln);
 /* Find friends of friends */
 dfs(fb, james, 2);           /* Should find tank */
 print(fb);
-
-
-void dfs_helper(Graph g, Node vertex, int depth){
-   if (vertex.visited == true) {
-       return;
-   }
-   if (vertex.curr_dist > depth) {
-       return;
-   }
-   vertex.visited = true;
-
-   /* Do whatever you want to the vertex */
-   if (vertex.curr_dist == 0) {
-   } else {
-   	print(vertex);
-   }
-
-   int size = g.num_neighbors[vertex];
-   int curr = 0;
-
-   while (curr < size) {
-      Node current;
-      current = g.neighbor[vertex, curr];
-      if (current.curr_dist == 0) {
-          current.curr_dist = vertex.curr_dist + 1;
-      }
-      curr = curr + 1;
-   }
-   curr = 0;
-   while (curr < size) {
-      Node current;
-      current = g.neighbor[vertex, curr];
-      /*print(g.weight[current, vertex]);*/
-      dfs_helper(g, current, depth);
-      curr = curr + 1;
-   }
-}
-
-void reset(Graph g) {
-    int size = g.num_nodes;
-    int curr = 0;
-
-    while (curr < size) {
-      Node current;
-      current = g.node[curr];
-      current.visited = false;
-      current.curr_dist = 0;
-      curr = curr + 1;
-    }
-}
-
-void dfs(Graph g, Node vertex, int depth) {
-
-	reset(g);
-	dfs_helper(g, vertex, depth);
-
-}

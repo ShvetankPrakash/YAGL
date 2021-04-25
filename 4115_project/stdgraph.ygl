@@ -1,59 +1,80 @@
+/* YAGL's standard graph */
+Graph copy_graph_lib(Graph g) {
 
-/* YAGL's Standard Graph Library */
+	Graph g2;
 
+	int nodes = g.num_nodes;
+	int curr = 0;
+	while (curr < nodes) {
+		Node current = g.node[curr];
+		g2: + current;
+		curr = curr + 1;
+	}
+	
+	curr = 0;
+	while (curr < nodes) {
 
-void dfs_helper(Graph g, Node vertex, int depth){
-   if (vertex.visited == true) {
-       return;
-   }
-   if (vertex.curr_dist > depth) {
-       return;
-   }
-   vertex.visited = true;
+		Node current = g.node[curr];
+		int neighs = g.num_neighbors[current];
+		int on = 0;
+		while (on < neighs) {
+			Node to;
+			to  = g.neighbor[current, on];
+			int val = g.weight[current, to];
+			g2: current ->val to;
+			on = on + 1;
+		} 
 
-   /* Do whatever you want to the vertex */
-   if (vertex.curr_dist == 0) {
-   } else {
-   	print(vertex);
-   }
+		curr = curr + 1;
+	}
 
-   int size = g.num_neighbors[vertex];
-   int curr = 0;
+	return g2;
 
-   while (curr < size) {
-      Node current;
-      current = g.neighbor[vertex, curr];
-      if (current.curr_dist == 0) {
-          current.curr_dist = vertex.curr_dist + 1;
-      }
-      curr = curr + 1;
-   }
-   curr = 0;
-   while (curr < size) {
-      Node current;
-      current = g.neighbor[vertex, curr];
-      /*print(g.weight[current, vertex]);*/
-      dfs_helper(g, current, depth);
-      curr = curr + 1;
-   }
 }
 
-void reset(Graph g) {
-    int size = g.num_nodes;
-    int curr = 0;
+Graph reverse_graph_lib(Graph g) {
 
-    while (curr < size) {
-      Node current;
-      current = g.node[curr];
-      current.visited = false;
-      current.curr_dist = 0;
-      curr = curr + 1;
-    }
+	Graph g2;
+
+	int nodes = g.num_nodes;
+	int curr = 0;
+	while (curr < nodes) {
+		Node current = g.node[curr];
+		g2: + current;
+		curr = curr + 1;
+	}
+	
+	curr = 0;
+	while (curr < nodes) {
+
+		Node current = g.node[curr];
+		int neighs = g.num_neighbors[current];
+		int on = 0;
+		while (on < neighs) {
+			Node to;
+			to  = g.neighbor[current, on];
+			int val = g.weight[current, to];
+			g2: to ->val current; /* Reversed */
+			on = on + 1;
+		} 
+
+		curr = curr + 1;
+	}
+	return g2;
 }
 
-void dfs_call(Graph g, Node vertex, int depth) {
-
+Node get_first_node_at_depth(Graph g, Node vertex, Node b, int depth) {
 	reset(g);
-	dfs_helper(g, vertex, depth);
+	return get_first_node_at_depth_helper(g, vertex, b, depth);
+}
 
+Node[1000] get_node_array(Graph g) {
+	Node[1000] nn;
+	int size = g.num_nodes;
+	int curr = 0;
+	while (curr < size) {
+		nn[curr] = g.node[curr];
+		curr = curr + 1;
+	}
+	return nn;
 }
