@@ -55,6 +55,10 @@ void dfs(Graph g, Node vertex, int depth) {
 }
 
 
+Node get_first_node_at_depth(Graph g, Node vertex, Node b, int depth) {
+	reset(g);
+	return get_first_node_at_depth_helper(g, vertex, b, depth);
+}
 
 Node get_first_node_at_depth_helper(Graph g, Node vertex, Node break, int depth){
    if (vertex.visited == true) {

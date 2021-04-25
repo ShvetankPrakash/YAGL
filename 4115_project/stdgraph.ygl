@@ -63,10 +63,6 @@ Graph reverse_graph_lib(Graph g) {
 	return g2;
 }
 
-Node get_first_node_at_depth(Graph g, Node vertex, Node b, int depth) {
-	reset(g);
-	return get_first_node_at_depth_helper(g, vertex, b, depth);
-}
 
 Node[1000] get_node_array(Graph g) {
 	Node[1000] nn;
