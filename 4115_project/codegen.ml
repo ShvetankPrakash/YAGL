@@ -286,19 +286,17 @@ let translate functions =
           | "weight"            -> L.build_call get_weight_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_weight"
           | _ -> raise (Failure "unsupported attribute type")) builder
       | SAttr ((Node, sId), "name", _, _) ->
-
               let e' = expr builder s_table (Node, sId) in
                  ignore (L.set_alignment 8 e');        
-              let ptr = L.build_struct_gep e' 1 "get_name" builder in
+              let ptr = L.build_struct_gep e' 1  "get_name" builder in
               let x = L.build_load ptr "get_name_load" builder in
-                 ignore (L.set_alignment 8 x);
+              ignore (L.set_alignment 8 x); ignore(x);
               L.build_call get_name_node_func [| (expr builder s_table (Node, sId)) |] "get_name_node" builder
-
       | SAttr (_) -> 
           raise (Failure "unsupported attribute type") 
       | SNodeLit (_, nodeName) -> 
                       L.build_call make_node_func [| (expr builder s_table nodeName) |]
-                                "make_node" builder
+                      "make_node" builder
       | SBinop ((A.Graph, _ ) as e1, op, e2) ->
 	  let e1' = expr builder s_table e1
 	  and e2' = expr builder s_table e2 in
@@ -380,7 +378,7 @@ let translate functions =
                                )
       | SAssign (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder s_table e1 in 
-                                                ignore(L.build_store e' (lookup s s_table) builder); e')
+                                        ignore(L.build_store e' (lookup s s_table) builder); e')
                                | _ -> let e' = expr builder s_table e2 in 
                                       let index = (match e1 with (* expr builder e in *)
                                          (Int, _)          -> expr builder s_table e1
@@ -456,7 +454,12 @@ let translate functions =
 
     let rec stmt s_table builder s1 = match s1 with
 	SBlock sl -> let add_local m (t, n) = 
-                       let local_var = L.build_alloca (ltype_of_typ t) n builder 
+                       let local_var = if t != Node then 
+                                                L.build_alloca (ltype_of_typ t) n builder 
+                                       else
+                                                let x = L.build_alloca (ltype_of_typ t) n builder in 
+                                                L.set_alignment 8 x; 
+                                                x
                        in StringMap.add n local_var m 
                      in
                      let updated_table =  (List.fold_left add_local StringMap.empty (List.fold_left

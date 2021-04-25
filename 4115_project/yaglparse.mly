@@ -65,6 +65,17 @@ fdecl:
 	 fname = $2;
 	 formals = List.rev $4;
 	 body = List.rev $7 } }
+    | GRAPH ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+     { { typ = Graph;
+	 fname = $2;
+	 formals = List.rev $4;
+	 body = List.rev $7 } }
+
+    | NODE ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+     { { typ = Node;
+	 fname = $2;
+	 formals = List.rev $4;
+	 body = List.rev $7 } }
 
 formals_opt:
     /* nothing */ { [] }
@@ -87,6 +98,8 @@ graph_stmts:
                                               Assign($2, NodeLit($2, $4), Noexpr))              }
   | NODE ID SEMI                            { Binding_Assign((Node, $2), 
                                               Assign($2, NodeLit($2, StrLit("")), Noexpr))      }
+  | NODE ID ASSIGN expr SEMI                { Binding_Assign((Node, $2), 
+                                              Assign($2, $4, Noexpr))                           }
   | GRAPH ID SEMI                           { Binding_Assign((Graph, $2),
                                               Assign($2, GraphLit($2), Noexpr))                 }
 

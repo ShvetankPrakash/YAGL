@@ -60,7 +60,7 @@ printGraph(ln);
 /* TAKE THINGS FROM BELOW AND IMPLEMENT TO GET BFS WORKING */
 
 /* Find friends of friends */
-dfs_call(fb, james, 2);           /* Should find tank */
+dfs(fb, james, 2);           /* Should find tank */
 print(fb);
 
 
@@ -113,7 +113,7 @@ void reset(Graph g) {
     }
 }
 
-void dfs_call(Graph g, Node vertex, int depth) {
+void dfs(Graph g, Node vertex, int depth) {
 
 	reset(g);
 	dfs_helper(g, vertex, depth);

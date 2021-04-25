@@ -64,6 +64,30 @@ cc -o test-char.exe test-char.s stdlib.o
 diff -b test-char.out tests/test-char.out > test-char.diff
 ###### SUCCESS
 
+###### Testing test-copy_graph
+./yagl.native tests/test-copy_graph.ygl > test-copy_graph.ll
+llc -relocation-model=pic test-copy_graph.ll > test-copy_graph.s
+cc -o test-copy_graph.exe test-copy_graph.s stdlib.o
+./test-copy_graph.exe
+diff -b test-copy_graph.out tests/test-copy_graph.out > test-copy_graph.diff
+###### SUCCESS
+
+###### Testing test-curr_dist
+./yagl.native tests/test-curr_dist.ygl > test-curr_dist.ll
+llc -relocation-model=pic test-curr_dist.ll > test-curr_dist.s
+cc -o test-curr_dist.exe test-curr_dist.s stdlib.o
+./test-curr_dist.exe
+diff -b test-curr_dist.out tests/test-curr_dist.out > test-curr_dist.diff
+###### SUCCESS
+
+###### Testing test-curr_dist2
+./yagl.native tests/test-curr_dist2.ygl > test-curr_dist2.ll
+llc -relocation-model=pic test-curr_dist2.ll > test-curr_dist2.s
+cc -o test-curr_dist2.exe test-curr_dist2.s stdlib.o
+./test-curr_dist2.exe
+diff -b test-curr_dist2.out tests/test-curr_dist2.out > test-curr_dist2.diff
+###### SUCCESS
+
 ###### Testing test-declareassign
 ./yagl.native tests/test-declareassign.ygl > test-declareassign.ll
 llc -relocation-model=pic test-declareassign.ll > test-declareassign.s
@@ -344,6 +368,30 @@ cc -o test-stringbinop2.exe test-stringbinop2.s stdlib.o
 diff -b test-stringbinop2.out tests/test-stringbinop2.out > test-stringbinop2.diff
 ###### SUCCESS
 
+###### Testing test-visited
+./yagl.native tests/test-visited.ygl > test-visited.ll
+llc -relocation-model=pic test-visited.ll > test-visited.s
+cc -o test-visited.exe test-visited.s stdlib.o
+./test-visited.exe
+diff -b test-visited.out tests/test-visited.out > test-visited.diff
+###### SUCCESS
+
+###### Testing test-visited2
+./yagl.native tests/test-visited2.ygl > test-visited2.ll
+llc -relocation-model=pic test-visited2.ll > test-visited2.s
+cc -o test-visited2.exe test-visited2.s stdlib.o
+./test-visited2.exe
+diff -b test-visited2.out tests/test-visited2.out > test-visited2.diff
+###### SUCCESS
+
+###### Testing test-visited3
+./yagl.native tests/test-visited3.ygl > test-visited3.ll
+llc -relocation-model=pic test-visited3.ll > test-visited3.s
+cc -o test-visited3.exe test-visited3.s stdlib.o
+./test-visited3.exe
+diff -b test-visited3.out tests/test-visited3.out > test-visited3.diff
+###### SUCCESS
+
 ###### Testing test-while
 ./yagl.native tests/test-while.ygl > test-while.ll
 llc -relocation-model=pic test-while.ll > test-while.s
@@ -372,8 +420,10 @@ diff -b fail-array3.err tests/fail-array3.err > fail-array3.diff
 ; ModuleID = 'YAGL'
 source_filename = "YAGL"
 
-%node_t.1 = type opaque
-%edge_list_t = type opaque
+%graph_t = type <{ i32, i32, i32, %node_t**, %edge_list_t** }>
+%node_t = type <{ i32, i8*, i8, i32 }>
+%edge_list_t = type <{ %edge_t*, %edge_list_t* }>
+%edge_t = type <{ %node_t*, %node_t*, i32, i32 }>
 
 @fmt = private unnamed_addr constant [4 x i8] c"%d\0A\00"
 @fmt.1 = private unnamed_addr constant [4 x i8] c"%g\0A\00"
@@ -382,37 +432,43 @@ source_filename = "YAGL"
 
 declare i32 @printf(i8*, ...)
 
-declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @make_graph(i32)
+declare %graph_t* @make_graph(i32)
 
-declare { i32, i1* }* @update_node({ i32, i1* }*, i8*)
+declare %node_t* @update_node(%node_t*, i8*)
 
-declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @insert_edge({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*, i32, { i32, i1* }*)
+declare %graph_t* @insert_edge(%graph_t*, %node_t*, i32, %node_t*)
 
-declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @remove_node({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*)
+declare %graph_t* @remove_node(%graph_t*, %node_t*)
 
-declare i8* @get_name_node({ i32, i1* }*)
+declare %node_t* @get_node(%graph_t*, i32)
 
-declare { i32, i1* }* @get_node({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, i32)
+declare i32 @get_weight(%graph_t*, %node_t*, %node_t*)
 
-declare i32 @get_weight({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*, { i32, i1* }*)
+declare i8* @get_name_node(%node_t*)
 
-declare { i32, i1* }* @get_neighbor({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*, i32)
+declare %node_t* @get_neighbor(%graph_t*, %node_t*, i32)
 
-declare i32 @get_num_neighbors({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*)
+declare i32 @get_num_neighbors(%graph_t*, %node_t*)
 
-declare i32 @get_graph_size({ i32, i32, i32, %node_t.1**, %edge_list_t** }*)
+declare %graph_t* @insert_node(%graph_t*, %node_t*)
 
-declare { i32, i32, i32, %node_t.1**, %edge_list_t** }* @insert_node({ i32, i32, i32, %node_t.1**, %edge_list_t** }*, { i32, i1* }*)
-
-declare i32 @print_graph({ i32, i32, i32, %node_t.1**, %edge_list_t** }*)
+declare i32 @print_graph(%graph_t*)
 
 declare i8* @sconcat(i8*, i8*)
 
 declare i32 @strlen(i8*, ...)
 
-declare { i32, i1* }* @make_node(i8*, ...)
+declare i1 @is_visited(%node_t*, ...)
 
-declare i32 @print_node({ i32, i1* }*, ...)
+declare %node_t* @update_visited(%node_t*, i1, ...)
+
+declare i32 @get_distance(%node_t*, ...)
+
+declare %node_t* @update_distance(%node_t*, i32, ...)
+
+declare %node_t* @make_node(i8*, ...)
+
+declare i32 @print_node(%node_t*, ...)
 
 define i32 @main() {
 entry:
@@ -461,6 +517,16 @@ diff -b fail-callmain.err tests/fail-callmain.err > fail-callmain.diff
 ###### Testing fail-char
 ./yagl.native < tests/fail-char.ygl 2> fail-char.err >> testall.log
 diff -b fail-char.err tests/fail-char.err > fail-char.diff
+###### SUCCESS
+
+###### Testing fail-curr_dist
+./yagl.native < tests/fail-curr_dist.ygl 2> fail-curr_dist.err >> testall.log
+diff -b fail-curr_dist.err tests/fail-curr_dist.err > fail-curr_dist.diff
+###### SUCCESS
+
+###### Testing fail-curr_dist2
+./yagl.native < tests/fail-curr_dist2.ygl 2> fail-curr_dist2.err >> testall.log
+diff -b fail-curr_dist2.err tests/fail-curr_dist2.err > fail-curr_dist2.diff
 ###### SUCCESS
 
 ###### Testing fail-declareassign
@@ -541,6 +607,21 @@ diff -b fail-string-length.err tests/fail-string-length.err > fail-string-length
 ###### Testing fail-stringbinop
 ./yagl.native < tests/fail-stringbinop.ygl 2> fail-stringbinop.err >> testall.log
 diff -b fail-stringbinop.err tests/fail-stringbinop.err > fail-stringbinop.diff
+###### SUCCESS
+
+###### Testing fail-visited
+./yagl.native < tests/fail-visited.ygl 2> fail-visited.err >> testall.log
+diff -b fail-visited.err tests/fail-visited.err > fail-visited.diff
+###### SUCCESS
+
+###### Testing fail-visited2
+./yagl.native < tests/fail-visited2.ygl 2> fail-visited2.err >> testall.log
+diff -b fail-visited2.err tests/fail-visited2.err > fail-visited2.diff
+###### SUCCESS
+
+###### Testing fail-visited3
+./yagl.native < tests/fail-visited3.ygl 2> fail-visited3.err >> testall.log
+diff -b fail-visited3.err tests/fail-visited3.err > fail-visited3.diff
 ###### SUCCESS
 
 ###### Testing fail-while
