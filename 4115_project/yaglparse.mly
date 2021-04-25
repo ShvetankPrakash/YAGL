@@ -98,6 +98,8 @@ graph_stmts:
                                               Assign($2, NodeLit($2, $4), Noexpr))              }
   | NODE ID SEMI                            { Binding_Assign((Node, $2), 
                                               Assign($2, NodeLit($2, StrLit("")), Noexpr))      }
+  | NODE ID ASSIGN expr SEMI                { Binding_Assign((Node, $2), 
+                                              Assign($2, $4, Noexpr))                           }
   | GRAPH ID SEMI                           { Binding_Assign((Graph, $2),
                                               Assign($2, GraphLit($2), Noexpr))                 }
 
