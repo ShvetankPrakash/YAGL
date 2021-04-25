@@ -1,3 +1,0 @@
-Node n("test");
-
-print(n.name);
