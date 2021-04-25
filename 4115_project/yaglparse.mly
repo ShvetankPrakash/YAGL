@@ -139,6 +139,8 @@ edge:
 
   | ID REVARROW ID                      { [EdgeOp(Noexpr, Id($1), RevLink, Literal(1), Id($3))]  }
   | ID REVARROW lit_id_expr ID          { [EdgeOp(Noexpr, Id($1), RevLink, $3, Id($4))]          }
+  | ID lit_id_expr REVARROW ID          { [EdgeOp(Noexpr, Id($1), RevLink, $2, Id($4))]          }
+  | ID LBRAC lit_id_expr REVARROW RBRAC ID { [EdgeOp(Noexpr, Id($1), RevLink, $3, Id($6))]       }
 
   | biarrow                             { $1 }
 
@@ -186,12 +188,6 @@ edge:
                                               | EdgeOpBi(_,_,_,_,x,_) -> x
                                               | _ -> raise (Failure "Error parsing edges.")), 
                                           RevLink, $4, Id($6))  :: $1                            } 
-  | edge LBRAC lit_id_expr REVARROW lit_id_expr RBRAC ID        
-                                        { EdgeOp(Noexpr, (match (List.hd($1)) with
-                                                EdgeOp(_,_,_,_,x) -> x
-                                              | EdgeOpBi(_,_,_,_,x,_) -> x
-                                              | _ -> raise (Failure "Error parsing edges.")), 
-                                          RevLink, $5, Id($7))  :: $1                            } 
   | edge LBRAC lit_id_expr REVARROW RBRAC ID        
                                         { EdgeOp(Noexpr, (match (List.hd($1)) with
                                                 EdgeOp(_,_,_,_,x) -> x
