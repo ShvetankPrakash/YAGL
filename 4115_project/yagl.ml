@@ -5,7 +5,7 @@ Top-level of the YAGL compiler: scan & parse the input,
    check the resulting AST and generate an SAST from it, generate LLVM IR,
    and dump the module 
    
-Minor functions of the large preprocessing code for file reading were adapted from Stack Overflow.   
+Minor helper functions of the large preprocessing code for file reading were adapted from Stack Overflow.   
 *)
 
 
@@ -83,5 +83,5 @@ let () =
     | Compile -> let m = Codegen.translate sast in
 	Llvm_analysis.assert_valid_module m;
 	print_string (Llvm.string_of_llmodule m)
-  ;
+  ; 
   Sys.remove new_file_name
