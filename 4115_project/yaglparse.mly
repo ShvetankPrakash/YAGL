@@ -6,8 +6,8 @@
 open Ast
 %}
 
-%token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW REVARROW BIARROW COLON DOT QMARK
-%token NOT EQ LT GT AND OR BAR LAND
+%token SEMI LPAREN RPAREN LBRACE RBRACE LBRAC RBRAC COMMA PLUS MINUS TIMES DIVIDE ASSIGN ARROW REVARROW BIARROW COLON DOT
+%token NOT EQ LT GT AND OR BAR
 %token RETURN IF ELSE FOR WHILE INT BOOL FLOAT VOID CHAR STRING NODE GRAPH EDGE
 %token <int> LITERAL
 %token <bool> BLIT
@@ -27,13 +27,11 @@ open Ast
 %left EQ COLON
 %left LT GT
 %left ARROW 
-%right REVARROW 
+%left REVARROW 
 %left BIARROW
-%left LAND
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT
-%left QMARK
 %left LBRAC 
 %left COMMA
 %left DOT
@@ -65,6 +63,17 @@ fdecl:
 	 fname = $2;
 	 formals = List.rev $4;
 	 body = List.rev $7 } }
+    | GRAPH ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+     { { typ = Graph;
+	 fname = $2;
+	 formals = List.rev $4;
+	 body = List.rev $7 } }
+
+    | NODE ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+     { { typ = Node;
+	 fname = $2;
+	 formals = List.rev $4;
+	 body = List.rev $7 } }
 
 formals_opt:
     /* nothing */ { [] }
@@ -87,6 +96,8 @@ graph_stmts:
                                               Assign($2, NodeLit($2, $4), Noexpr))              }
   | NODE ID SEMI                            { Binding_Assign((Node, $2), 
                                               Assign($2, NodeLit($2, StrLit("")), Noexpr))      }
+  | NODE ID ASSIGN expr SEMI                { Binding_Assign((Node, $2), 
+                                              Assign($2, $4, Noexpr))                           }
   | GRAPH ID SEMI                           { Binding_Assign((Graph, $2),
                                               Assign($2, GraphLit($2), Noexpr))                 }
 
@@ -128,6 +139,8 @@ edge:
 
   | ID REVARROW ID                      { [EdgeOp(Noexpr, Id($1), RevLink, Literal(1), Id($3))]  }
   | ID REVARROW lit_id_expr ID          { [EdgeOp(Noexpr, Id($1), RevLink, $3, Id($4))]          }
+  | ID lit_id_expr REVARROW ID          { [EdgeOp(Noexpr, Id($1), RevLink, $2, Id($4))]          }
+  | ID LBRAC lit_id_expr REVARROW RBRAC ID { [EdgeOp(Noexpr, Id($1), RevLink, $3, Id($6))]       }
 
   | biarrow                             { $1 }
 
@@ -175,12 +188,6 @@ edge:
                                               | EdgeOpBi(_,_,_,_,x,_) -> x
                                               | _ -> raise (Failure "Error parsing edges.")), 
                                           RevLink, $4, Id($6))  :: $1                            } 
-  | edge LBRAC lit_id_expr REVARROW lit_id_expr RBRAC ID        
-                                        { EdgeOp(Noexpr, (match (List.hd($1)) with
-                                                EdgeOp(_,_,_,_,x) -> x
-                                              | EdgeOpBi(_,_,_,_,x,_) -> x
-                                              | _ -> raise (Failure "Error parsing edges.")), 
-                                          RevLink, $5, Id($7))  :: $1                            } 
   | edge LBRAC lit_id_expr REVARROW RBRAC ID        
                                         { EdgeOp(Noexpr, (match (List.hd($1)) with
                                                 EdgeOp(_,_,_,_,x) -> x

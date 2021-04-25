@@ -27,7 +27,6 @@ rule token = parse
 | '<'      { LT }
 | ">"      { GT }
 | "&&"     { AND }
-| "&"      { LAND }
 | "||"     { OR }
 | "|"      { BAR }
 | "!"      { NOT }

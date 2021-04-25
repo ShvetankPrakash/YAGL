@@ -37,21 +37,18 @@ let translate functions =
   in
 
   (* Graph Types *)
-  let node_t     = L.struct_type context 
-                   [| i32_t; 
-                      L.pointer_type i1_t |]
-  and edge_t     = L.struct_type context 
-                   [| L.pointer_type (L.named_struct_type context "node_t");
-                      L.pointer_type (L.named_struct_type context "node_t"); 
-                      i32_t  |]
-  (*and edge_list_t = L.struct_type context 
-                    [| L.pointer_type (L.named_struct_type context "edge_t"); 
-                       L.pointer_type (L.named_struct_type context "edge_list_t") |]*)
-  and graph_t = L.struct_type context 
-                [| i32_t; i32_t; i32_t; 
-                   L.pointer_type (L.pointer_type (L.named_struct_type context "node_t")); 
-                   L.pointer_type (L.pointer_type (L.named_struct_type context "edge_list_t"))  |]
-  in
+  let node_t      = L.named_struct_type context "node_t" in
+  L.struct_set_body node_t [| i32_t; L.pointer_type i8_t; i8_t; i32_t |] true;
+
+  let edge_t      = L.named_struct_type context "edge_t" in
+  L.struct_set_body edge_t [| L.pointer_type node_t; L.pointer_type node_t; i32_t; i32_t  |] true;
+
+  let edge_list_t =  L.named_struct_type context "edge_list_t" in
+  L.struct_set_body edge_list_t [| L.pointer_type edge_t; L.pointer_type edge_list_t |] true;
+
+  let graph_t     = L.named_struct_type context "graph_t" in
+  L.struct_set_body graph_t [| i32_t; i32_t; i32_t; L.pointer_type (L.pointer_type node_t); 
+                               L.pointer_type (L.pointer_type edge_list_t) |] true;
 
   (* Return the LLVM type for a YAGL type *)
   let rec ltype_of_typ = function
@@ -85,9 +82,6 @@ let translate functions =
   let update_node_t : L.lltype = 
           L.function_type (L.pointer_type node_t)
            [| (L.pointer_type node_t); (L.pointer_type i8_t) |] in
-  let num_node_t : L.lltype = 
-          L.function_type (i32_t)
-           [| (L.pointer_type graph_t) |] in
   let get_name_node_t : L.lltype = 
           L.function_type ((L.pointer_type i8_t) )
            [| (L.pointer_type node_t) |] in
@@ -125,18 +119,16 @@ let translate functions =
       L.declare_function "insert_edge" insert_edge_t the_module in
   let remove_node_func : L.llvalue =
       L.declare_function "remove_node" remove_node_t the_module in
-  let get_name_node_func : L.llvalue =
-      L.declare_function "get_name_node" get_name_node_t the_module in
   let get_node_func : L.llvalue =
       L.declare_function "get_node" get_node_t the_module in
   let get_weight_func : L.llvalue =
       L.declare_function "get_weight" get_weight_t the_module in
+  let get_name_node_func : L.llvalue =
+      L.declare_function "get_name_node" get_name_node_t the_module in
   let get_neighbor_func : L.llvalue =
       L.declare_function "get_neighbor" get_neighbor_t the_module in
   let get_num_neighbors_func : L.llvalue =
       L.declare_function "get_num_neighbors" get_num_neighbors_t the_module in
-  let num_node_func : L.llvalue =
-      L.declare_function "get_graph_size" num_node_t the_module in
   let insert_node_func : L.llvalue =
       L.declare_function "insert_node" insert_node_t the_module in
   let print_graph_func : L.llvalue =
@@ -279,25 +271,32 @@ let translate functions =
       | SId s   -> L.build_load (lookup s s_table) s builder
       | SAttr ((String, sId), "length", _, _) -> 
             L.build_call strlen_func [| (expr builder s_table (String, sId)) |] "strlen" builder
-   (* | SAttr ((Node, nId), "name") -> expr builder (SNodeLit, nId) THIS IS BROKEN *)           
       | SAttr ((Node, sId), "visited", _, _) ->
             L.build_call is_visited_func [| (expr builder s_table (Node, sId)) |] "is_visited" builder  
       | SAttr ((Node, sId), "curr_dist", _, _) ->
             L.build_call get_distance_func [| (expr builder s_table (Node, sId)) |] "get_distance" builder
       | SAttr ((Graph, sId), attr, e, e2) -> (match attr with 
-            "node" -> L.build_call get_node_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_node"
-          | "num_nodes"     -> L.build_call num_node_func [| (expr builder s_table (Graph, sId)) |] "get_graph_size"
-          | "neighbor" -> L.build_call get_neighbor_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_neighbor"
-          | "num_neighbors" -> L.build_call get_num_neighbors_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_num_neighbors"            
-          | "weight" -> L.build_call get_weight_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_weight"
+            "node"              -> L.build_call get_node_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_node"
+          | "num_nodes"         ->      let e' = expr builder s_table (Node, sId) in
+                                        ignore (L.set_alignment 4 e');        
+                                        let ptr = L.build_struct_gep e' 1 "get_num_nodes" builder in
+                                        L.build_load ptr "test" 
+          | "neighbor"          -> L.build_call get_neighbor_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_neighbor"
+          | "num_neighbors"     -> L.build_call get_num_neighbors_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_num_neighbors"            
+          | "weight"            -> L.build_call get_weight_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_weight"
           | _ -> raise (Failure "unsupported attribute type")) builder
       | SAttr ((Node, sId), "name", _, _) ->
+              let e' = expr builder s_table (Node, sId) in
+                 ignore (L.set_alignment 8 e');        
+              let ptr = L.build_struct_gep e' 1  "get_name" builder in
+              let x = L.build_load ptr "get_name_load" builder in
+              ignore (L.set_alignment 8 x); ignore(x);
               L.build_call get_name_node_func [| (expr builder s_table (Node, sId)) |] "get_name_node" builder
       | SAttr (_) -> 
           raise (Failure "unsupported attribute type") 
       | SNodeLit (_, nodeName) -> 
-            L.build_call make_node_func [| (expr builder s_table nodeName) |]
-            "make_node" builder
+                      L.build_call make_node_func [| (expr builder s_table nodeName) |]
+                      "make_node" builder
       | SBinop ((A.Graph, _ ) as e1, op, e2) ->
 	  let e1' = expr builder s_table e1
 	  and e2' = expr builder s_table e2 in
@@ -363,8 +362,8 @@ let translate functions =
                   "make_graph" builder
       | SAssignNode (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder s_table e1 in 
-                               ignore(L.build_call update_node_func [| L.build_load (lookup s s_table) "ptr" builder; e'  |]
-                                                         "update_node" builder); e')
+                               ignore (L.build_call update_node_func [| L.build_load (lookup s s_table) "ptr" builder; e'  |]
+                               "update_node" builder); e')
                                | _ -> let e' = expr builder s_table e2 in 
                                       let index = (match e1 with (* expr builder e in *)
                                          (Int, _)          -> expr builder s_table e1
@@ -379,7 +378,7 @@ let translate functions =
                                )
       | SAssign (s, e1, e2) -> (match e2 with 
                                (_, SNoexpr) -> (let e' = expr builder s_table e1 in 
-                                                ignore(L.build_store e' (lookup s s_table) builder); e')
+                                        ignore(L.build_store e' (lookup s s_table) builder); e')
                                | _ -> let e' = expr builder s_table e2 in 
                                       let index = (match e1 with (* expr builder e in *)
                                          (Int, _)          -> expr builder s_table e1
@@ -437,6 +436,12 @@ let translate functions =
                           let ptr =  
                             L.build_in_bounds_gep (lookup s s_table) indices (s^"_ptr_") builder
                           in L.build_load ptr (s^"_elem_") builder
+      | SUnop(op, ((t, _) as e)) ->
+          let e' = expr builder s_table e in
+	  (match op with
+	    A.Neg when t = A.Float -> L.build_fneg 
+	  | A.Neg                  -> L.build_neg
+          | A.Not                  -> L.build_not) e' "tmp" builder
       | _ -> raise (Failure("Unhandled case: unimplemented")) 
     in
     
@@ -455,7 +460,12 @@ let translate functions =
 
     let rec stmt s_table builder s1 = match s1 with
 	SBlock sl -> let add_local m (t, n) = 
-                       let local_var = L.build_alloca (ltype_of_typ t) n builder 
+                       let local_var = if t != Node then 
+                                                L.build_alloca (ltype_of_typ t) n builder 
+                                       else
+                                                let x = L.build_alloca (ltype_of_typ t) n builder in 
+                                                L.set_alignment 8 x; 
+                                                x
                        in StringMap.add n local_var m 
                      in
                      let updated_table =  (List.fold_left add_local StringMap.empty (List.fold_left
