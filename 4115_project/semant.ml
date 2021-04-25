@@ -267,19 +267,20 @@ let check_function func =
                           let e2' = expr e2 s_table in
                           let et = (match e' with (t, _) -> t) in
                           let e2t = (match e2' with (t, _) -> t) in
+                          let st = type_of_identifier s s_table in
                           let err = "Wrong accessor type, [" ^ string_of_typ et ^ ", " ^ string_of_typ e2t ^"], on attribute " ^ a ^ "." in
                           let ret = (type_of_attribute a, SAttr ((type_of_identifier s s_table, SId s), a, e', e2')) in
                           (match a with
-                                  "length" -> if et = Void && e2t = Void then ret else raise (Failure err)
-                                | "name"   ->  if et = Void && e2t = Void then ret else raise (Failure err)
-                                | "num_nodes" -> if et = Void && e2t = Void then ret else raise (Failure err)
-                                | "num_neighbors" -> if et = Node && e2t = Void then ret else raise (Failure err)
-                                | "node" -> if et = Int && e2t = Void then ret else raise (Failure err)
-                                | "neighbor" -> if et = Node && e2t = Int then ret else raise (Failure err)
-                                | "curr_dist" -> if et = Void && e2t = Void then ret else raise (Failure err)
-                                | "visited" -> if et = Void && e2t = Void then ret else raise (Failure err)
-                                | "weight" -> if et = Node && e2t = Node then ret else raise (Failure err)
-                                | _ -> raise (Failure err))
+                                  "length"              -> if st = String && et = Void && e2t = Void then ret else raise (Failure err)
+                                | "name"                -> if st = Node   && et = Void && e2t = Void then ret else raise (Failure err)
+                                | "num_nodes"           -> if st = Graph  && et = Void && e2t = Void then ret else raise (Failure err)
+                                | "num_neighbors"       -> if st = Graph  && et = Node && e2t = Void then ret else raise (Failure err)
+                                | "node"                -> if st = Graph  && et = Int  && e2t = Void then ret else raise (Failure err)
+                                | "neighbor"            -> if st = Graph  && et = Node && e2t = Int  then ret else raise (Failure err)
+                                | "curr_dist"           -> if st = Node   && et = Void && e2t = Void then ret else raise (Failure err)
+                                | "visited"             -> if st = Node   && et = Void && e2t = Void then ret else raise (Failure err)
+                                | "weight"              -> if st = Graph  && et = Node && e2t = Node then ret else raise (Failure err)
+                                | _                     -> raise (Failure err))
        | Binop(e1, op, e2) as e -> 
           let (t1, e1') = expr e1 s_table 
           and (t2, e2') = expr e2 s_table in
