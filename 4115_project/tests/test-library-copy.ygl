@@ -11,6 +11,17 @@ void reset(Graph g) {
     }
 }
 
+Graph g;
+Node n1("Hi there");
+Node n2("hey");
+Node n3("Bye");
+g: + n1 + n2 + n3 -> n2 <-5 n1;
+Graph g2;
+g2 = copy_graph_lib(g);
+print("original:");
+print(g);
+print("Copied:");
+print(g2);
 Graph copy_graph_lib(Graph g) {
 
 	Graph g2;

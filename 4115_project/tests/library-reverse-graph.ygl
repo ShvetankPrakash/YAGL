@@ -11,17 +11,6 @@ void reset(Graph g) {
     }
 }
 
-Graph g;
-Node n1("Hi there");
-Node n2("hey");
-Node n3("Bye");
-g: + n1 + n2 + n3 -> n2 <-5 n1;
-Graph g2;
-g2 = reverse_graph_lib(g);
-print("original:");
-print(g);
-print("Copied:");
-print(g2);
 Graph reverse_graph_lib(Graph g) {
 
 	Graph g2;
@@ -50,7 +39,5 @@ Graph reverse_graph_lib(Graph g) {
 
 		curr = curr + 1;
 	}
-
 	return g2;
-
 }
