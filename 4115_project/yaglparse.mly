@@ -27,7 +27,7 @@ open Ast
 %left EQ COLON
 %left LT GT
 %left ARROW 
-%right REVARROW 
+%left REVARROW 
 %left BIARROW
 %left LAND
 %left PLUS MINUS
