@@ -1,7 +1,7 @@
 The YAGL compiler (forked from MicroC compiler)
 
 Coded in OCaml, this language is built around c-like syntax (ints,
-bools, and void types, arithmetic, if-else, for, and while statements,
+bools, and void types, arithmetic, if-else, and while statements,
 and user-defined functions) and compiles it into LLVM IR.
 
 It needs the OCaml llvm library, which is most easily installed through opam.
@@ -12,31 +12,43 @@ and opam, then use opam to install llvm.
 The version of the OCaml llvm library must match the version of the LLVM
 system installed on your system.
 
-YAGL currently supports printString and printInt, which call 
-the C library function printf().
+YAGL currently supports print<data_type> and has generic printing print(),
+which call the C library function printf().
 
-The stock C compiler compiles printbig.o.  testall.sh runs the yagl 
-executable on each testcase (.ygl file) to produce a .ll file, invokes
-"llc" (the LLVM compiler) to produce a .s (assembly) file, then
-invokes "cc" (the stock C compiler) to assemble the .s file, link in
-printbig.o, and generate an executable.  See testall.sh for details.
+testall.sh runs the yagl executable on each testcase (.ygl file) 
+to produce a .ll file, which invokes "llc" (the LLVM compiler) to produce a 
+.s (assembly) file, then invokes "cc" (the stock C compiler) to assemble 
+the .s file and generate an executable. See testall.sh for details.
 
----- HELLO WORLD MILESTONE ----
-To test our hello world milestone for YAGL:
+----- Test Suite -----
+To check that all the tests are passed:
 
 1) Invoke the docker image that Prof. Edwards provided
-   (run docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt)
+   (docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt)
 
-2) cd into YAGL 
+2a) Run 'make clean && make test'
+2b) Alternatively if you would like to simply make the compiler and run the entire
+    test suite simply run 'make clean && make' 
 
-3) Run 'make helloworld'
+----- FINAL DEMOS -----
+To run the demos from our presentation:
 
-4) This will run a script that outputs the source helloworld.ygl program, 
-   followed by the AST, SAST, LLVM IR, assembly, and finally the output
-   of the helloworld executable.
+1) Invoke the docker image that Prof. Edwards provided
+   (docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt)
 
-5) To run the regression test suite run 'make test'
+2) Run 'make clean && make all'
 
-6) Alternatively if you would like to simply make the compiler and run the entire test suite simply run 'make'
--------------------------------
+3a) Run './yagl final_demos/demo1' to get output of the social network example
+3b) Run './yagl final_demos/demo2' for hello world program implemented using a graph
+3c) Run './yagl final_demos/yagl_in_one_slide' for a quick overview demo
 
+----- DEBUGGING -----
+To see the generated AST, SAST, LLVM IR, and assembly code:
+
+1) Invoke the docker image that Prof. Edwards provided
+   (docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt)
+
+2) Run 'make clean && make all'
+
+3) Run './yagl_debugger tests/<file>' or './yagl final_demos/<file>'
+   (Do not include .ygl file extension with <file>)
