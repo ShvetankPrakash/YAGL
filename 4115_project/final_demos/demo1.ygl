@@ -29,6 +29,7 @@ fb: adam <-> james <-> jack, tank <-> jack, tank <-> adam;                   /* 
 
 printString("Facebook's Network");
 printGraph(fb);
+print_break();
 
 
 
@@ -39,7 +40,7 @@ tw: + edwards + michael1 -> edwards,     /* Twitter followers is a one direction
 
 printString("Twitter's Network");
 printGraph(tw);
-
+print_break();
 
 
 
@@ -53,13 +54,27 @@ printGraph(ln);
 /* Delete the random people from LinkedIn since they chose to delete their accounts */
 ln: - tiffany - buehler - michael2 - michael1;
 
-printString("LinkedIn's Network");
+printString("LinkedIn's Network - with deletion");
 printGraph(ln);
+print_break();
 
 /* Update typo! fixes in all graphs */
 james = "James";
+printString("LinkedIn's Network with James fixed");
 printGraph(ln);
+print_break();
 
+print("Friends and Friends of Friends of James");
 /* Find friends of friends */
 dfs(fb, james, 2);           /* Should find tank */
+print('\n');
+print("Facebook's Network, for reference:");
 print(fb);
+
+
+
+
+void print_break() {
+	print("");
+	print("");
+}
