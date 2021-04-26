@@ -1,6 +1,6 @@
 The YAGL compiler (forked from MicroC compiler)
 
-Coded in OCaml, this language is built around c-like syntax (ints,
+Coded in OCaml, this language is built around C-like syntax (ints,
 bools, and void types, arithmetic, if-else, and while statements,
 and user-defined functions) and compiles it into LLVM IR.
 
@@ -31,7 +31,7 @@ To check that all the tests are passed:
     test suite simply run 'make clean && make' 
 
 ----- FINAL DEMOS -----
-To run the demos from our presentation:
+To run the demos from our final presentation:
 
 1) Invoke the docker image that Prof. Edwards provided
    (docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt)
@@ -39,16 +39,32 @@ To run the demos from our presentation:
 2) Run 'make clean && make all'
 
 3a) Run './yagl final_demos/demo1' to get output of the social network example
-3b) Run './yagl final_demos/demo2' for hello world program implemented using a graph
+3b) Run './yagl final_demos/demo2' for YAGL's hello world program implemented using a graph
 3c) Run './yagl final_demos/yagl_in_one_slide' for a quick overview demo
 
------ DEBUGGING -----
-To see the generated AST, SAST, LLVM IR, and assembly code:
+----- COMPILE & RUN ANY FILE -----
+To compile and execute any YAGL source file:
 
 1) Invoke the docker image that Prof. Edwards provided
    (docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt)
 
 2) Run 'make clean && make all'
 
-3) Run './yagl_debugger tests/<file>' or './yagl final_demos/<file>'
-   (Do not include .ygl file extension with <file>)
+3) Run './yagl <file_path>' 
+   (Do not include .ygl file extension with <file_path>)
+
+4) Here is an example: './yagl tests/test-array'
+
+----- DEBUGGING -----
+To see the generated AST, SAST, LLVM IR, and assembly code for debugging purposes:
+
+1) Invoke the docker image that Prof. Edwards provided
+   (docker run --rm -it -v `pwd`:/home/microc -w=/home/microc columbiasedwards/plt)
+
+2) Run 'make clean && make all'
+
+3a) Run './yagl_debugger tests/<file>' or './yagl final_demos/<file>' if you would like 
+    to use an example from our existing ones. (Do not include .ygl file extension with <file>)
+
+3b) Alternatively run './yagl_debugger <file_path>' if you would like to write your own YAGL 
+    program and run it. (Do not include .ygl file extension with <file>)
