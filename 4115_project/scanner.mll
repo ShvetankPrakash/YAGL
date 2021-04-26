@@ -46,7 +46,6 @@ rule token = parse
 | "Graph"  { GRAPH }
 | "String" { STRING }
 | "Node"   { NODE }
-| "Edge"   { EDGE }
 | "void"   { VOID }
 | "true"   { BLIT(true)  }
 | "false"  { BLIT(false) }
