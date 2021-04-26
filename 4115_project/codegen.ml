@@ -279,7 +279,7 @@ let translate functions =
           | "num_nodes"         ->      let e' = expr builder s_table (Node, sId) in
                                         ignore (L.set_alignment 4 e');        
                                         let ptr = L.build_struct_gep e' 1 "get_num_nodes" builder in
-                                        L.build_load ptr "test" 
+                                        L.build_load ptr "num_nodes_ptr" 
           | "neighbor"          -> L.build_call get_neighbor_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_neighbor"
           | "num_neighbors"     -> L.build_call get_num_neighbors_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e |] "get_num_neighbors"            
           | "weight"            -> L.build_call get_weight_func [| (expr builder s_table (Graph, sId)) ; expr builder s_table e; expr builder s_table e2 |] "get_weight"
