@@ -60,8 +60,6 @@ printGraph(ln);
 james = "James";
 printGraph(ln);
 
-/* TAKE THINGS FROM BELOW AND IMPLEMENT TO GET BFS WORKING */
-
 /* Find friends of friends */
 dfs(fb, james, 2);           /* Should find tank */
 print(fb);
