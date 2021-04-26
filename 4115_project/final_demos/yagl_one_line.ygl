@@ -9,11 +9,11 @@ example: + n + n2, n -> n2 -> n;
 print_graph_lib(example);
 
 String gen_name(String n) {
-	String hidden = "xx";
+	String hidden = "ODE";
 	String total = "";
 	{
 		String hidden = "N";
 		total = total + hidden;
 	}
-	return total + n;
+	return total + hidden + n;
 }
