@@ -139,7 +139,6 @@ struct edge *g_contain_e(struct graph *g, struct edge *ed) {
 static int id = 0;
 struct node *make_node(char *name) {
 
-	//TODO: do we really need id? do we need to malloc name or just store ptr from ocaml?
 
 	struct node *n = malloc(sizeof(struct node));
 

@@ -63,9 +63,10 @@ let translate functions =
     | A.Edge         -> L.pointer_type edge_t
     | A.Array (t, e) -> let num =(match e with
                            Literal(l) -> l
-                         | Binop(_, _, _) -> raise(Failure("TODO"))
-                         | Id _  -> raise(Failure("TODO"))
-                         | _ -> raise(Failure("TODO"))
+                         | Binop(_, _, _) -> raise(Failure("TODO: Not currently supported."))
+                         | Id _  -> raise(Failure("TODO: Not currently supported."))
+                         | _ -> raise(Failure("Can not declare array's length with non integer expr type."))
+                         (* This is for declaring an array; these are supported for accessing an array though!*)
                         )
                         in L.array_type (ltype_of_typ t) num 
   in
@@ -474,7 +475,7 @@ let translate functions =
                                               | SBinding_Assign (b, _) -> b :: bind_list
                                               | _ -> bind_list
                                             ) [] sl)
-                                          ) :: s_table (*TODO: FIX LEAKING ON THE STACK?*)
+                                          ) :: s_table 
                                           in List.fold_left (stmt updated_table) builder sl
       | SExpr e -> ignore(expr builder s_table e); builder 
       | SBinding (_,_) -> builder;
