@@ -82,7 +82,7 @@ Node get_first_node_at_depth_helper(Graph g, Node vertex, Node break, int depth)
       curr = curr + 1;
    }
    curr = 0;
-   Node new(""); /* just a place holder */
+   Node new; /* just a place holder */
    while (curr < size) {
       Node current;
       current = g.neighbor[vertex, curr];
