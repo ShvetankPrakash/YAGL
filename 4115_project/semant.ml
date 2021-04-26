@@ -179,7 +179,6 @@ let check_function func =
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
           else if compare fname "main" == 0 then
-            (* TODO: IF we add globals then we can remove this... thoughts? *)
             raise (Failure ("Cannot call main otherwise recurse forever"))
           else let check_call (ft, _) e = 
             let (et, e') = expr e s_table in 
@@ -312,7 +311,7 @@ let check_function func =
                                                            then raise(Failure("ERROR: Index out of bounds.")) 
                                                            else (e2, t)
                                             | (Unop _, _)  -> raise(Failure("ERROR: Index out of bounds.")) 
-                                            | _            -> (e2, t)  (* raise(Failure("TODO - extract value of e2 to catch out of bounds err")) *)
+                                            | _            -> (e2, t)  
                                            )
                            | _ -> raise(Failure("ERROR: This case should not have been reached.")) 
                         )
@@ -370,8 +369,6 @@ let check_function func =
                                  string_of_typ func.typ ^ " in return " ^ string_of_expr e))
       (* A block is correct if each statement is correct and nothing
          follows any Return statement.  Nested blocks are flattened. *)
-      (* TODO: If we want scoping and declaring variables in a nested
-       * block, then we cannot simply flatten                        *)
       | Block sl ->
 
           (* Create new symbol table for this block's scope and add to head of outer scope symbol table *)

@@ -456,6 +456,6 @@ void print_graph(struct graph *g) {
 #ifdef BUILD_TEST
 int main()
 {
-	// TODO?
+	return 0;
 }
 #endif
