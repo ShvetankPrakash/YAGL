@@ -1,8 +1,8 @@
 # YAGL
 ### "Yet Another Graph Language"
 
-This repository has developed a compiler for the YAGL language that was invented for the purposes of a project.
-It was developed with the intention to make writing graph algorithms easier. 
+This repository contains a compiler that was developed for the YAGL language.
+YAGL was invented with the intention of making it easier to write & code graph algorithms, which are so pervasive in computer science. 
 
 Below is an example program written in YAGL. Please checkout the repo for more examples in 4115_project/final_demos.
 ```
